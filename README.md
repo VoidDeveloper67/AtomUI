@@ -318,7 +318,7 @@ lib:Notify({ Title = "VoidHub", Description = "Press RightCtrl to toggle.", Dura
 
 <div align="center">
 
-Made with 🔮 by [**vonplayz_real**](https://github.com/VoidDeveloper67) & [**DarealBloxfruiter**](https://github.com/darkflareplays8)
+Made by [**vonplayz_real**](https://github.com/VoidDeveloper67) & [**DarealBloxfruiter**](https://github.com/darkflareplays8)
 
 Part of the **VoidHub** project &nbsp;·&nbsp; [GitHub →](https://github.com/VoidDeveloper67/AtomUI)
 
