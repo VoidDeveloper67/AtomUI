@@ -69,8 +69,7 @@ local default_icons = {
     dropdown_arrow  = "rbxassetid://111626678408582",
 }
 
-local atmc          = writefile("atomic_wtf.png", game:HttpGet("https://github.com/bimoraa/Euphoria/blob/main/yestomic.png?raw=true"))
-local atomic_logo   = getcustomasset("atomic_wtf.png")
+local atomic_logo   = "rbxassetid://101833678008843"
 --#endregion═════════════════════════════════════════════════════════════════════
 
 
