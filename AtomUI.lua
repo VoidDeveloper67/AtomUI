@@ -4722,7 +4722,7 @@ function atom_ui:BuildMainFrame()
     -- Sleek floating toggle button (appears when UI is closed)
     self.floating_toggle = create("Frame", {
         Name = "AtomFloatingToggle",
-        BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+        BackgroundTransparency = 1,
         Position = UDim2.new(0, 10, 0, 10),
         Size = UDim2.new(0, 34 * scale_factor, 0, 34 * scale_factor),
         AnchorPoint = Vector2.new(0, 0),
@@ -4731,8 +4731,6 @@ function atom_ui:BuildMainFrame()
         Visible = false,
         Active = true
     })
-    create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = self.floating_toggle})
-    create("UIStroke", {Color = Color3.fromRGB(40, 40, 40), Thickness = 1, Parent = self.floating_toggle})
 
     local ft_icon = create("ImageLabel", {
         Image = default_icons.section,
@@ -4740,7 +4738,7 @@ function atom_ui:BuildMainFrame()
         BackgroundTransparency = 1,
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        Size = UDim2.new(0.45, 0, 0.45, 0),
+        Size = UDim2.new(1, 0, 1, 0),
         ZIndex = 99999,
         Parent = self.floating_toggle
     })
@@ -4757,11 +4755,9 @@ function atom_ui:BuildMainFrame()
         self:Toggle()
     end)
     ft_click.MouseEnter:Connect(function()
-        tween_to(self.floating_toggle, {BackgroundColor3 = Color3.fromRGB(32, 32, 32)}, 0.15)
         tween_to(ft_icon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.15)
     end)
     ft_click.MouseLeave:Connect(function()
-        tween_to(self.floating_toggle, {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}, 0.15)
         tween_to(ft_icon, {ImageColor3 = self.config.AccentColor}, 0.15)
     end)
 end
