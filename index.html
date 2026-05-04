@@ -546,12 +546,12 @@
   <div class="hero" id="intro">
     <div class="hero-badge">Stable Release</div>
     <h1 class="hero-title">Atom<span>UI</span></h1>
-    <p class="hero-desc">A modern, feature-rich Roblox UI library for script executors. Build beautiful interfaces with smooth animations, auto-configuration, and 15+ built-in elements.</p>
+    <p class="hero-desc">A modern, feature-rich Roblox UI library for script executors. Build beautiful interfaces with smooth animations, auto-configuration, and 18+ built-in elements.</p>
     <div class="hero-pills">
       <span class="pill">Single File</span>
       <span class="pill">No Dependencies</span>
       <span class="pill">Auto Config</span>
-      <span class="pill">15+ Elements</span>
+      <span class="pill">18+ Elements</span>
       <span class="pill">Notifications</span>
       <span class="pill">Color Themes</span>
     </div>
@@ -686,7 +686,7 @@
   <div class="doc-section" id="elements">
     <div class="section-eyebrow">Elements</div>
     <h2 class="section-title">Element Library</h2>
-    <p class="section-lead">15+ built-in elements — all attached to a <code>Group</code> object.</p>
+    <p class="section-lead">18+ built-in elements — all attached to a <code>Group</code> object.</p>
     <div class="element-grid">
       <a href="#element-usage" class="element-card">
         <div class="el-icon">⊙</div>
@@ -748,6 +748,21 @@
         <div class="el-name">AddSpacer</div>
         <div class="el-desc">Configurable vertical spacing between elements</div>
       </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">▰</div>
+        <div class="el-name">AddProgressBar</div>
+        <div class="el-desc">Animated fill bar for displaying values between 0–1 with optional percent label</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">±</div>
+        <div class="el-name">AddNumberInput</div>
+        <div class="el-desc">Increment/decrement stepper with optional min, max, and step constraints</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">◉</div>
+        <div class="el-name">AddBadge</div>
+        <div class="el-desc">Colored pill label for displaying status or metadata inline</div>
+      </a>
     </div>
   </div>
 
@@ -755,19 +770,61 @@
   <div class="doc-section" id="element-usage">
     <div class="section-eyebrow">Elements</div>
     <h2 class="section-title">Usage Examples</h2>
-    <p class="section-lead">Every element accepts a config table. The <code>Flag</code> property enables config system tracking.</p>
-    <div class="code-wrap">
-      <div class="code-header"><span class="code-lang">Lua — Toggle</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
-      <div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>
+    <p class="section-lead">Click any element to expand its config options, methods, and a copy-ready code snippet. The <code>Flag</code> property on any element enables config system tracking.</p>
+
+    <div class="method-list">
+
+      <!-- AddToggle -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddToggle(config)</span>
+          <span class="method-desc-short">On/off switch with animated pill</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Toggle"</td><td>Label text</td></tr>
+              <tr><td>Default</td><td>boolean</td><td>false</td><td>Initial state</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(bool)</td><td>—</td><td>Fires on change</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(bool, silent?)</code> &nbsp;·&nbsp; <code>:Get() → bool</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">t</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>
     <span class="key">Name</span>     <span class="op">=</span> <span class="str">"Enabled"</span><span class="op">,</span>
     <span class="key">Default</span>  <span class="op">=</span> <span class="bool">false</span><span class="op">,</span>
     <span class="key">Flag</span>     <span class="op">=</span> <span class="str">"aimbot_enabled"</span><span class="op">,</span>
-    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>value<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>value<span class="op">)</span> <span class="kw">end</span>
-<span class="op">})</span></code></div>
-    </div>
-    <div class="code-wrap">
-      <div class="code-header"><span class="code-lang">Lua — Slider</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
-      <div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddSlider</span><span class="op">({</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">t</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="bool">true</span><span class="op">)</span>   <span class="cmt">-- set value programmatically</span>
+<span class="fn">t</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>        <span class="cmt">-- returns current bool</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddSlider -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddSlider(config)</span>
+          <span class="method-desc-short">Draggable numeric slider with fill bar</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Slider"</td><td>Label text</td></tr>
+              <tr><td>Min</td><td>number</td><td>0</td><td>Minimum value</td></tr>
+              <tr><td>Max</td><td>number</td><td>100</td><td>Maximum value</td></tr>
+              <tr><td>Default</td><td>number</td><td>Min</td><td>Starting value</td></tr>
+              <tr><td>Increment</td><td>number</td><td>1</td><td>Snap step size</td></tr>
+              <tr><td>Suffix</td><td>string</td><td>""</td><td>Unit appended to value label</td></tr>
+              <tr><td>ShowMax</td><td>boolean</td><td>false</td><td>Show "value / max" format</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(number)</td><td>—</td><td>Fires on value change</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(number, silent?)</code> &nbsp;·&nbsp; <code>:Get() → number</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">s</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddSlider</span><span class="op">({</span>
     <span class="key">Name</span>      <span class="op">=</span> <span class="str">"FOV"</span><span class="op">,</span>
     <span class="key">Min</span>       <span class="op">=</span> <span class="num">10</span><span class="op">,</span>
     <span class="key">Max</span>       <span class="op">=</span> <span class="num">800</span><span class="op">,</span>
@@ -775,48 +832,359 @@
     <span class="key">Increment</span> <span class="op">=</span> <span class="num">5</span><span class="op">,</span>
     <span class="key">Suffix</span>    <span class="op">=</span> <span class="str">"px"</span><span class="op">,</span>
     <span class="key">Flag</span>      <span class="op">=</span> <span class="str">"aimbot_fov"</span><span class="op">,</span>
-    <span class="key">Callback</span>  <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>value<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>value<span class="op">)</span> <span class="kw">end</span>
-<span class="op">})</span></code></div>
-    </div>
-    <div class="code-wrap">
-      <div class="code-header"><span class="code-lang">Lua — Dropdown</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
-      <div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddDropdown</span><span class="op">({</span>
-    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"Target"</span><span class="op">,</span>
+    <span class="key">Callback</span>  <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">s</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="num">200</span><span class="op">)</span>   <span class="cmt">-- jump to value</span>
+<span class="fn">s</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>       <span class="cmt">-- returns current number</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddDropdown -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddDropdown(config)</span>
+          <span class="method-desc-short">Single-select dropdown with search</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Dropdown"</td><td>Label text</td></tr>
+              <tr><td>Options</td><td>table</td><td>{}</td><td>Array of string options</td></tr>
+              <tr><td>Default</td><td>string</td><td>Options[1]</td><td>Initially selected value</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(string)</td><td>—</td><td>Fires on selection change</td></tr>
+              <tr><td>OptionsProvider</td><td>function → table</td><td>nil</td><td>Dynamic options source</td></tr>
+              <tr><td>AutoRefresh</td><td>boolean</td><td>auto</td><td>Re-poll OptionsProvider automatically</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(string, silent?)</code> &nbsp;·&nbsp; <code>:Get() → string</code> &nbsp;·&nbsp; <code>:UpdateOptions(table)</code> &nbsp;·&nbsp; <code>:Close()</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">d</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddDropdown</span><span class="op">({</span>
+    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"Target Part"</span><span class="op">,</span>
     <span class="key">Options</span>  <span class="op">=</span> <span class="op">{</span><span class="str">"Head"</span><span class="op">,</span> <span class="str">"Torso"</span><span class="op">,</span> <span class="str">"HumanoidRootPart"</span><span class="op">},</span>
     <span class="key">Default</span>  <span class="op">=</span> <span class="str">"Head"</span><span class="op">,</span>
     <span class="key">Flag</span>     <span class="op">=</span> <span class="str">"aimbot_target"</span><span class="op">,</span>
-    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>value<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>value<span class="op">)</span> <span class="kw">end</span>
-<span class="op">})</span></code></div>
-    </div>
-    <div class="code-wrap">
-      <div class="code-header"><span class="code-lang">Lua — MultiDropdown</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
-      <div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddMultiDropdown</span><span class="op">({</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">d</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="str">"Torso"</span><span class="op">)</span>
+<span class="fn">d</span><span class="op">:</span><span class="fn">UpdateOptions</span><span class="op">({</span><span class="str">"Head"</span><span class="op">,</span> <span class="str">"Neck"</span><span class="op">})</span>   <span class="cmt">-- swap options at runtime</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddMultiDropdown -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddMultiDropdown(config)</span>
+          <span class="method-desc-short">Multi-select dropdown with checkboxes</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Multi Dropdown"</td><td>Label text</td></tr>
+              <tr><td>Options</td><td>table</td><td>{}</td><td>Array of string options</td></tr>
+              <tr><td>Default</td><td>table</td><td>{}</td><td>Array of initially selected values</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(table)</td><td>—</td><td>Fires with array of selected values</td></tr>
+              <tr><td>OptionsProvider</td><td>function → table</td><td>nil</td><td>Dynamic options source</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(table, silent?)</code> &nbsp;·&nbsp; <code>:Get() → table</code> &nbsp;·&nbsp; <code>:UpdateOptions(table)</code> &nbsp;·&nbsp; <code>:Close()</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">md</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddMultiDropdown</span><span class="op">({</span>
     <span class="key">Name</span>     <span class="op">=</span> <span class="str">"ESP Types"</span><span class="op">,</span>
     <span class="key">Options</span>  <span class="op">=</span> <span class="op">{</span><span class="str">"Box"</span><span class="op">,</span> <span class="str">"Name"</span><span class="op">,</span> <span class="str">"Health"</span><span class="op">,</span> <span class="str">"Distance"</span><span class="op">},</span>
     <span class="key">Default</span>  <span class="op">=</span> <span class="op">{</span><span class="str">"Box"</span><span class="op">,</span> <span class="str">"Name"</span><span class="op">},</span>
     <span class="key">Flag</span>     <span class="op">=</span> <span class="str">"esp_types"</span><span class="op">,</span>
     <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>values<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>values<span class="op">)</span> <span class="kw">end</span>
-<span class="op">})</span></code></div>
-    </div>
-    <div class="code-wrap">
-      <div class="code-header"><span class="code-lang">Lua — ColorPicker</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
-      <div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddColorPicker</span><span class="op">({</span>
-    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"ESP Color"</span><span class="op">,</span>
-    <span class="key">Default</span>  <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span> <span class="num">0</span><span class="op">,</span> <span class="num">0</span><span class="op">),</span>
-    <span class="key">Flag</span>     <span class="op">=</span> <span class="str">"esp_color"</span><span class="op">,</span>
-    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>color<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>color<span class="op">)</span> <span class="kw">end</span>
-<span class="op">})</span></code></div>
-    </div>
-    <div class="code-wrap">
-      <div class="code-header"><span class="code-lang">Lua — Keybind</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
-      <div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddKeybind</span><span class="op">({</span>
+<span class="op">})</span>
+<span class="fn">md</span><span class="op">:</span><span class="fn">Set</span><span class="op">({</span><span class="str">"Health"</span><span class="op">})</span>   <span class="cmt">-- set selection programmatically</span>
+<span class="fn">md</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>            <span class="cmt">-- returns array of selected values</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddButton -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddButton(config)</span>
+          <span class="method-desc-short">Clickable button with optional icon and lock state</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Button"</td><td>Button label</td></tr>
+              <tr><td>Icon</td><td>string</td><td>nil</td><td>rbxassetid or lucide icon name</td></tr>
+              <tr><td>Locked</td><td>boolean</td><td>false</td><td>Grays out and disables clicks</td></tr>
+              <tr><td>Callback</td><td>function()</td><td>—</td><td>Fires on click</td></tr>
+            </tbody></table>
+          </div>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddButton</span><span class="op">({</span>
+    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"Rejoin Server"</span><span class="op">,</span>
+    <span class="key">Icon</span>     <span class="op">=</span> <span class="str">"refresh-cw"</span><span class="op">,</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">()</span>
+        <span class="fn">game</span><span class="op">:</span><span class="fn">GetService</span><span class="op">(</span><span class="str">"TeleportService"</span><span class="op">):</span><span class="fn">Teleport</span><span class="op">(</span><span class="fn">game</span><span class="op">.</span><span class="fn">PlaceId</span><span class="op">)</span>
+    <span class="kw">end</span>
+<span class="op">})</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddKeybind -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddKeybind(config)</span>
+          <span class="method-desc-short">Keybind input with Toggle and Hold modes</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Keybind"</td><td>Label text</td></tr>
+              <tr><td>Default</td><td>Enum.KeyCode</td><td>Unknown</td><td>Starting key</td></tr>
+              <tr><td>Mode</td><td>"Toggle" | "Hold"</td><td>"Toggle"</td><td>Activation mode</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function()</td><td>—</td><td>Fires on key press / hold start</td></tr>
+              <tr><td>ChangedCallback</td><td>function(KeyCode)</td><td>—</td><td>Fires when the key is rebound</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(KeyCode, silent?)</code> &nbsp;·&nbsp; <code>:Get() → KeyCode</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddKeybind</span><span class="op">({</span>
     <span class="key">Name</span>            <span class="op">=</span> <span class="str">"Toggle Key"</span><span class="op">,</span>
     <span class="key">Default</span>         <span class="op">=</span> <span class="fn">Enum</span><span class="op">.</span><span class="fn">KeyCode</span><span class="op">.</span><span class="fn">E</span><span class="op">,</span>
     <span class="key">Mode</span>            <span class="op">=</span> <span class="str">"Toggle"</span><span class="op">,</span>
     <span class="key">Flag</span>            <span class="op">=</span> <span class="str">"aimbot_key"</span><span class="op">,</span>
-    <span class="key">Callback</span>        <span class="op">=</span> <span class="kw">function</span><span class="op">()</span> <span class="fn">print</span><span class="op">(</span><span class="str">"Pressed!"</span><span class="op">)</span> <span class="kw">end</span><span class="op">,</span>
-    <span class="key">ChangedCallback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>key<span class="op">)</span> <span class="fn">print</span><span class="op">(</span><span class="str">"New key:"</span><span class="op">,</span> key<span class="op">)</span> <span class="kw">end</span>
-<span class="op">})</span></code></div>
+    <span class="key">Callback</span>        <span class="op">=</span> <span class="kw">function</span><span class="op">()</span> <span class="fn">print</span><span class="op">(</span><span class="str">"Fired!"</span><span class="op">)</span> <span class="kw">end</span><span class="op">,</span>
+    <span class="key">ChangedCallback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>key<span class="op">)</span> <span class="fn">print</span><span class="op">(</span><span class="str">"Rebound to:"</span><span class="op">,</span> key<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddKeybindToggle -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddKeybindToggle(config)</span>
+          <span class="method-desc-short">Combined keybind + toggle in one row</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <p style="margin-bottom:10px;font-size:.875rem">A single row element with both a keybind picker and an on/off toggle switch. Useful for features that can be permanently on or activated only while holding a key.</p>
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Keybind"</td><td>Label text</td></tr>
+              <tr><td>Default</td><td>Enum.KeyCode</td><td>Unknown</td><td>Starting key</td></tr>
+              <tr><td>ToggleDefault</td><td>boolean</td><td>false</td><td>Initial toggle state</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(bool)</td><td>—</td><td>Fires with toggle state on key press</td></tr>
+            </tbody></table>
+          </div>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddKeybindToggle</span><span class="op">({</span>
+    <span class="key">Name</span>          <span class="op">=</span> <span class="str">"Aimbot Key"</span><span class="op">,</span>
+    <span class="key">Default</span>       <span class="op">=</span> <span class="fn">Enum</span><span class="op">.</span><span class="fn">KeyCode</span><span class="op">.</span><span class="fn">CapsLock</span><span class="op">,</span>
+    <span class="key">ToggleDefault</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span>
+    <span class="key">Flag</span>          <span class="op">=</span> <span class="str">"aimbot_keytoggle"</span><span class="op">,</span>
+    <span class="key">Callback</span>      <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>state<span class="op">)</span> <span class="fn">print</span><span class="op">(</span><span class="str">"Active:"</span><span class="op">,</span> state<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddTextInput -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddTextInput(config)</span>
+          <span class="method-desc-short">Single-line text field with placeholder</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Input"</td><td>Label text above the box</td></tr>
+              <tr><td>Placeholder</td><td>string</td><td>"Enter text..."</td><td>Greyed hint text</td></tr>
+              <tr><td>Default</td><td>string</td><td>""</td><td>Initial value</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(text, enterPressed)</td><td>—</td><td>Fires on focus lost</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(string)</code> &nbsp;·&nbsp; <code>:Get() → string</code> &nbsp;·&nbsp; <code>:SetValue(string, silent?)</code> &nbsp;·&nbsp; <code>:ResetValue()</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">ti</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddTextInput</span><span class="op">({</span>
+    <span class="key">Name</span>        <span class="op">=</span> <span class="str">"Webhook URL"</span><span class="op">,</span>
+    <span class="key">Placeholder</span> <span class="op">=</span> <span class="str">"https://discord.com/api/webhooks/..."</span><span class="op">,</span>
+    <span class="key">Default</span>     <span class="op">=</span> <span class="str">""</span><span class="op">,</span>
+    <span class="key">Flag</span>        <span class="op">=</span> <span class="str">"webhook_url"</span><span class="op">,</span>
+    <span class="key">Callback</span>    <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>text<span class="op">,</span> enter<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>text<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">ti</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="str">"https://..."</span><span class="op">)</span>   <span class="cmt">-- set value</span>
+<span class="fn">ti</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>                <span class="cmt">-- returns current string</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddColorPicker -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddColorPicker(config)</span>
+          <span class="method-desc-short">HSV color picker with live preview swatch</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Color"</td><td>Label text</td></tr>
+              <tr><td>Default</td><td>Color3</td><td>fromRGB(255,100,150)</td><td>Starting color</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(Color3)</td><td>—</td><td>Fires on color change</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(Color3, silent?)</code> &nbsp;·&nbsp; <code>:Get() → Color3</code> &nbsp;·&nbsp; <code>:Close()</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">cp</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddColorPicker</span><span class="op">({</span>
+    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"ESP Color"</span><span class="op">,</span>
+    <span class="key">Default</span>  <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span> <span class="num">0</span><span class="op">,</span> <span class="num">0</span><span class="op">),</span>
+    <span class="key">Flag</span>     <span class="op">=</span> <span class="str">"esp_color"</span><span class="op">,</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>c<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>c<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">cp</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">0</span><span class="op">,</span> <span class="num">255</span><span class="op">,</span> <span class="num">128</span><span class="op">))</span>
+<span class="fn">cp</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>   <span class="cmt">-- returns Color3</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddLabel -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddLabel(config) / group:AddParagraph(config)</span>
+          <span class="method-desc-short">Read-only text display with optional wrapping</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Text / Name</td><td>string</td><td>"Label"</td><td>Displayed text</td></tr>
+              <tr><td>Wrap</td><td>boolean</td><td>false</td><td>Enable word wrapping (auto-sizes height). <code>AddParagraph</code> always wraps.</td></tr>
+            </tbody></table>
+          </div>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddLabel</span><span class="op">({</span> <span class="key">Text</span> <span class="op">=</span> <span class="str">"v1.0.0 — Build 42"</span> <span class="op">})</span>
+
+<span class="fn">group</span><span class="op">:</span><span class="fn">AddParagraph</span><span class="op">({</span>
+    <span class="key">Text</span> <span class="op">=</span> <span class="str">"This is a longer description that will wrap across multiple lines automatically."</span>
+<span class="op">})</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddDivider -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddDivider()</span>
+          <span class="method-desc-short">Horizontal gradient separator line</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <p style="font-size:.875rem;margin-bottom:12px">No config. Inserts a thin gradient line between elements to visually group them.</p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Feature A"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">()</span> <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">group</span><span class="op">:</span><span class="fn">AddDivider</span><span class="op">()</span>
+<span class="fn">group</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Feature B"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">()</span> <span class="kw">end</span> <span class="op">})</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddSpacer -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddSpacer(height?)</span>
+          <span class="method-desc-short">Configurable vertical blank space</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <p style="font-size:.875rem;margin-bottom:12px">Inserts <code>height</code> pixels of vertical space (scaled). Defaults to <code>10</code> if omitted.</p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddSpacer</span><span class="op">()</span>     <span class="cmt">-- 10px gap</span>
+<span class="fn">group</span><span class="op">:</span><span class="fn">AddSpacer</span><span class="op">(</span><span class="num">20</span><span class="op">)</span>   <span class="cmt">-- 20px gap</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddProgressBar -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddProgressBar(config)</span>
+          <span class="method-desc-short">Animated fill bar for 0–1 values</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Progress"</td><td>Label text</td></tr>
+              <tr><td>Value</td><td>number</td><td>0</td><td>Starting fill (0.0 – 1.0)</td></tr>
+              <tr><td>ShowPercent</td><td>boolean</td><td>true</td><td>Show percentage label on the right</td></tr>
+              <tr><td>Color</td><td>Color3</td><td>AccentColor</td><td>Fill bar color</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(number, animate?)</code> &nbsp;·&nbsp; <code>:Get() → number</code> &nbsp;·&nbsp; <code>:SetColor(Color3)</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">bar</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddProgressBar</span><span class="op">({</span>
+    <span class="key">Name</span>        <span class="op">=</span> <span class="str">"Health"</span><span class="op">,</span>
+    <span class="key">Value</span>       <span class="op">=</span> <span class="num">0.75</span><span class="op">,</span>
+    <span class="key">ShowPercent</span> <span class="op">=</span> <span class="bool">true</span><span class="op">,</span>
+    <span class="key">Color</span>       <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">80</span><span class="op">,</span> <span class="num">220</span><span class="op">,</span> <span class="num">100</span><span class="op">),</span>
+<span class="op">})</span>
+<span class="fn">bar</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="num">0.5</span><span class="op">)</span>                               <span class="cmt">-- animate to 50%</span>
+<span class="fn">bar</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="num">0.5</span><span class="op">,</span> <span class="bool">false</span><span class="op">)</span>                         <span class="cmt">-- instant, no tween</span>
+<span class="fn">bar</span><span class="op">:</span><span class="fn">SetColor</span><span class="op">(</span><span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span> <span class="num">80</span><span class="op">,</span> <span class="num">80</span><span class="op">))</span>  <span class="cmt">-- tween fill color</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddNumberInput -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddNumberInput(config)</span>
+          <span class="method-desc-short">− / + stepper with optional bounds</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Number"</td><td>Label text</td></tr>
+              <tr><td>Default</td><td>number</td><td>0</td><td>Starting value</td></tr>
+              <tr><td>Min</td><td>number</td><td>nil</td><td>Lower bound (optional)</td></tr>
+              <tr><td>Max</td><td>number</td><td>nil</td><td>Upper bound (optional)</td></tr>
+              <tr><td>Step</td><td>number</td><td>1</td><td>Amount per click</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(number)</td><td>—</td><td>Fires on value change</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(number, silent?)</code> &nbsp;·&nbsp; <code>:Get() → number</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">ni</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddNumberInput</span><span class="op">({</span>
+    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"Max Players"</span><span class="op">,</span>
+    <span class="key">Default</span>  <span class="op">=</span> <span class="num">10</span><span class="op">,</span>
+    <span class="key">Min</span>      <span class="op">=</span> <span class="num">1</span><span class="op">,</span>
+    <span class="key">Max</span>      <span class="op">=</span> <span class="num">100</span><span class="op">,</span>
+    <span class="key">Step</span>     <span class="op">=</span> <span class="num">1</span><span class="op">,</span>
+    <span class="key">Flag</span>     <span class="op">=</span> <span class="str">"max_players"</span><span class="op">,</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">ni</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="num">25</span><span class="op">)</span>   <span class="cmt">-- set value (clamped to Min/Max)</span>
+<span class="fn">ni</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>     <span class="cmt">-- returns current number</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddBadge -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddBadge(config)</span>
+          <span class="method-desc-short">Colored pill for status or metadata</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Badge"</td><td>Label text on the left</td></tr>
+              <tr><td>Value</td><td>string</td><td>""</td><td>Text shown inside the pill</td></tr>
+              <tr><td>Color</td><td>string</td><td>"blue"</td><td><code>blue</code> · <code>green</code> · <code>red</code> · <code>yellow</code> · <code>purple</code> · <code>gray</code></td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(value, color?)</code> &nbsp;·&nbsp; <code>:Get() → string</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">badge</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddBadge</span><span class="op">({</span>
+    <span class="key">Name</span>  <span class="op">=</span> <span class="str">"Status"</span><span class="op">,</span>
+    <span class="key">Value</span> <span class="op">=</span> <span class="str">"Active"</span><span class="op">,</span>
+    <span class="key">Color</span> <span class="op">=</span> <span class="str">"green"</span><span class="op">,</span>
+<span class="op">})</span>
+<span class="fn">badge</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="str">"Inactive"</span><span class="op">,</span> <span class="str">"red"</span><span class="op">)</span>   <span class="cmt">-- update value and color</span>
+<span class="fn">badge</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="str">"Loading"</span><span class="op">)</span>           <span class="cmt">-- update value, keep color</span>
+<span class="fn">badge</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>                     <span class="cmt">-- returns current string</span></code></div></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1063,14 +1431,14 @@
     </div>
     <div class="callout tip">
       <span class="callout-icon">💡</span>
-      <div>The demo creates a full UI with toggles, sliders, dropdowns, keybinds, color pickers, and more. Press <strong>RightCtrl</strong> to toggle the UI open/closed.</div>
+      <div>The demo creates a full UI with toggles, sliders, dropdowns, keybinds, color pickers, progress bars, number inputs, badges, and more. Press <strong>RightCtrl</strong> to toggle the UI open/closed.</div>
     </div>
   </div>
 
   <!-- FOOTER -->
   <div class="divider"></div>
   <div style="color:var(--muted);font-size:.8rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <span>AtomUI v1.1 — Made by <strong style="color:var(--text)">von63rd</strong></span>
+    <span>AtomUI v1.1 — Made by <strong style="color:var(--text)">von63rd and professionalflare</strong></span>
     <span style="font-family:'IBM Plex Mono',monospace;font-size:.72rem">VoidDeveloper67/AtomUI</span>
   </div>
 
