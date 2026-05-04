@@ -108,7 +108,7 @@ atom_ui.Demo()
 
 ## Documentation
 
-Full documentation is available at: [https://von63rd.github.io/atomui](https://von63rd.github.io/atomui)
+Full documentation is available at: [https://voiddeveloper67.github.io/AtomUI/#intro](https://voiddeveloper67.github.io/AtomUI/#intro)
 
 ## Credits
 
