@@ -1,10 +1,3 @@
--- AtomUI Library
--- Created by: von63rd
--- Version: 1.1.0
--- A modern, sleek Roblox UI library for executors
-
---#region ══╗ Services ╔═════════════════════════════════════════════════════════
-
 local safe_clone = cloneref or function(service) return service end
 
 local tween_service     = safe_clone(game:GetService("TweenService"))
