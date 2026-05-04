@@ -4719,9 +4719,6 @@ function atom_ui:BuildMainFrame()
             tween_to(self.settings_btn_frame, {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}, 0.15)
         end
     end)
-end
-
-
     -- Sleek floating toggle button (appears when UI is closed)
     self.floating_toggle = create("Frame", {
         Name = "AtomFloatingToggle",
@@ -4767,6 +4764,9 @@ end
         tween_to(self.floating_toggle, {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}, 0.15)
         tween_to(ft_icon, {ImageColor3 = self.config.AccentColor}, 0.15)
     end)
+end
+
+
 
 
 function atom_ui:SetWatermark(config)
