@@ -3372,9 +3372,9 @@ function atom_ui:BuildUI()
     -- Set initial toggle icon state based on visibility
     if self.toggle_icon then
         if self.is_visible then
-            self.toggle_icon.ImageColor3 = Color3.new(1, 1, 1)
-        else
             self.toggle_icon.ImageColor3 = self.config.AccentColor
+        else
+            self.toggle_icon.ImageColor3 = Color3.new(1, 1, 1)
         end
     end
     self:SetFontPreset(self._fontPresetIndex)
@@ -3654,19 +3654,9 @@ function atom_ui:Toggle()
     local openPosition = self._mainFrameOpenPosition or UDim2.new(0.5, -392 * scale_factor, 0.5, -262 * scale_factor)
     local closedPosition = self._mainFrameClosedPosition or UDim2.new(0.5, openPosition.X.Offset, 1.5, 0)
 
-    -- Ensure UIScale exists for scale animation
-    if not self._mainUIScale then
-        self._mainUIScale = self.main_frame:FindFirstChildOfClass("UIScale")
-        if not self._mainUIScale then
-            self._mainUIScale = create("UIScale", {Scale = 1, Parent = self.main_frame})
-        end
-    end
-
     if self.is_visible then
-        -- OPEN: scale pop + slide in
+        -- OPEN: smooth scale-up + slide in
         self.main_frame.Visible = true
-        self._mainUIScale.Scale = 0.96
-        tween_to(self._mainUIScale, {Scale = 1}, 0.45, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         tween_to(self.main_frame, {Position = openPosition}, 0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
         if self.backdrop_dim then
             tween_to(self.backdrop_dim, {BackgroundTransparency = 0.55}, 0.45)
@@ -3678,13 +3668,12 @@ function atom_ui:Toggle()
                 if self.floating_toggle then self.floating_toggle.Visible = false end
             end)
         end
-        -- Toggle icon white when UI is open
+        -- Pulse the toggle icon to show "active" state
         if self.toggle_icon then
-            tween_to(self.toggle_icon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.3)
+            tween_to(self.toggle_icon, {ImageColor3 = self.config.AccentColor}, 0.3)
         end
     else
-        -- CLOSE: shrink + slide down
-        tween_to(self._mainUIScale, {Scale = 0.96}, 0.35, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+        -- CLOSE: slide down + fade
         tween_to(self.main_frame, {Position = closedPosition}, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
         if self.backdrop_dim then
             tween_to(self.backdrop_dim, {BackgroundTransparency = 1}, 0.35)
@@ -3693,11 +3682,11 @@ function atom_ui:Toggle()
         if self.floating_toggle then
             self.floating_toggle.Visible = true
             self.floating_toggle.ImageTransparency = 1
-            tween_to(self.floating_toggle, {ImageTransparency = 0}, 0.35)
+            tween_to(self.floating_toggle, {ImageTransparency = 0}, 0.3)
         end
-        -- Toggle icon accent color when UI is closed
+        -- Reset toggle icon color
         if self.toggle_icon then
-            tween_to(self.toggle_icon, {ImageColor3 = self.config.AccentColor}, 0.3)
+            tween_to(self.toggle_icon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.3)
         end
     end
     self:_ApplyOpenCloseVisuals(false)
@@ -3716,68 +3705,23 @@ end
 
 function atom_ui:BuildToggleButton()
     local btn_size = 55 * scale_factor
-    local icon_size = btn_size * 0.62
-
-    -- Shadow layer behind button for depth
-    local toggle_shadow = create("ImageLabel", {
-        Name = "ToggleShadow",
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://5028857084",
-        ImageColor3 = Color3.fromRGB(0, 0, 0),
-        ImageTransparency = 0.7,
-        Size = UDim2.new(1, 10, 1, 10),
-        Position = UDim2.new(0.5, 0, 0.5, 3),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        ZIndex = -1,
-        Parent = self.screen_gui
-    })
 
     self.toggle_frame = create("Frame", {
         Name = "ToggleButton",
         BackgroundColor3 = self.config.SecondaryColor or Color3.fromRGB(18, 18, 18),
         AnchorPoint = Vector2.new(0, 0.5),
-        Position = UDim2.new(0, 10, 0.5, 0),
+        Position = UDim2.new(0, 8, 0.5, 0),
         BorderSizePixel = 0,
         Size = UDim2.new(0, btn_size, 0, btn_size),
-        Parent = self.screen_gui,
-        ZIndex = 2
+        Parent = self.screen_gui
     })
+    create("UICorner", {CornerRadius = UDim.new(0, 14), Parent = self.toggle_frame})
 
-    -- Sync shadow position to frame
-    task.spawn(function()
-        while toggle_shadow and toggle_shadow.Parent and self.toggle_frame and self.toggle_frame.Parent do
-            toggle_shadow.Position = UDim2.new(
-                self.toggle_frame.Position.X.Scale,
-                self.toggle_frame.Position.X.Offset,
-                self.toggle_frame.Position.Y.Scale,
-                self.toggle_frame.Position.Y.Offset + 3
-            )
-            toggle_shadow.Size = UDim2.new(0, self.toggle_frame.AbsoluteSize.X + 10, 0, self.toggle_frame.AbsoluteSize.Y + 10)
-            task.wait(0.1)
-        end
-    end)
-
-    create("UICorner", {CornerRadius = UDim.new(0, 16), Parent = self.toggle_frame})
-
-    local toggle_stroke = create("UIStroke", {
-        Color = Color3.fromRGB(50, 50, 50),
+    create("UIStroke", {
+        Color = Color3.fromRGB(45, 45, 45),
         Thickness = 2,
-        Transparency = 0.15,
         Parent = self.toggle_frame
     })
-
-    -- Inner subtle gradient overlay for depth
-    local toggle_inner = create("Frame", {
-        Name = "ToggleInner",
-        BackgroundColor3 = Color3.fromRGB(255, 255, 255),
-        BackgroundTransparency = 0.96,
-        BorderSizePixel = 0,
-        Size = UDim2.new(1, -4, 1, -4),
-        Position = UDim2.new(0, 2, 0, 2),
-        ZIndex = 2,
-        Parent = self.toggle_frame
-    })
-    create("UICorner", {CornerRadius = UDim.new(0, 13), Parent = toggle_inner})
 
     self.toggle_icon = create("ImageLabel", {
         Name = "ToggleIcon",
@@ -3786,59 +3730,20 @@ function atom_ui:BuildToggleButton()
         ImageColor3 = self.config.AccentColor or Color3.fromRGB(2, 133, 255),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        Size = UDim2.new(0, icon_size, 0, icon_size),
-        ZIndex = 3,
+        Size = UDim2.new(0, btn_size * 0.55, 0, btn_size * 0.55),
         Parent = self.toggle_frame
     })
 
     local toggle_btn = create("TextButton", {
         Name = "ClickButton",
         Text = "", BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 1, 0),
-        ZIndex = 10,
+        Size = UDim2.new(0, btn_size, 0, btn_size),
+        ZIndex = 9999999,
         Parent = self.toggle_frame
     })
 
-    -- Hover: subtle scale up + brighten
-    toggle_btn.MouseEnter:Connect(function()
-        tween_to(self.toggle_frame, {Size = UDim2.new(0, btn_size + 5, 0, btn_size + 5)}, 0.2, Enum.EasingStyle.Quint)
-        tween_to(toggle_stroke, {Color = Color3.fromRGB(80, 80, 80), Transparency = 0}, 0.2)
-        tween_to(self.toggle_icon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.2)
-        tween_to(toggle_shadow, {ImageTransparency = 0.5}, 0.2)
-    end)
-
-    -- MouseLeave: return to normal
-    toggle_btn.MouseLeave:Connect(function()
-        tween_to(self.toggle_frame, {Size = UDim2.new(0, btn_size, 0, btn_size)}, 0.22, Enum.EasingStyle.Quint)
-        tween_to(toggle_stroke, {Color = Color3.fromRGB(50, 50, 50), Transparency = 0.15}, 0.22)
-        tween_to(toggle_shadow, {ImageTransparency = 0.7}, 0.22)
-        if self.is_visible then
-            tween_to(self.toggle_icon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.22)
-        else
-            tween_to(self.toggle_icon, {ImageColor3 = self.config.AccentColor or Color3.fromRGB(2, 133, 255)}, 0.22)
-        end
-    end)
-
-    -- Click: press down effect then bounce back
-    toggle_btn.MouseButton1Down:Connect(function()
-        tween_to(self.toggle_frame, {Size = UDim2.new(0, btn_size - 3, 0, btn_size - 3)}, 0.08)
-        tween_to(toggle_shadow, {ImageTransparency = 0.85}, 0.08)
-    end)
-
-    toggle_btn.MouseButton1Up:Connect(function()
-        tween_to(self.toggle_frame, {Size = UDim2.new(0, btn_size + 2, 0, btn_size + 2)}, 0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-        tween_to(toggle_shadow, {ImageTransparency = 0.7}, 0.15)
-    end)
-
     toggle_btn.MouseButton1Click:Connect(function()
         self:Toggle()
-        -- Pop animation on icon
-        tween_to(self.toggle_icon, {Size = UDim2.new(0, icon_size * 0.72, 0, icon_size * 0.72)}, 0.07)
-        task.delay(0.07, function()
-            if self.toggle_icon and self.toggle_icon.Parent then
-                tween_to(self.toggle_icon, {Size = UDim2.new(0, icon_size, 0, icon_size)}, 0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-            end
-        end)
     end)
 
     make_draggable(self.toggle_frame, toggle_btn, self)
@@ -3878,26 +3783,6 @@ function atom_ui:BuildWatermark()
     })
     table.insert(self._gradientLabels, self.watermark_textLabel)
     
-    -- Watermark hover: subtle brighten
-    local wmStroke = self.watermark_frame:FindFirstChildOfClass("UIStroke")
-    local wmHover = create("TextButton", {
-        Text = "", BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 1, 0),
-        Parent = self.watermark_frame
-    })
-    wmHover.MouseEnter:Connect(function()
-        tween_to(self.watermark_frame, {BackgroundTransparency = 0.12}, 0.2)
-        if wmStroke then
-            tween_to(wmStroke, {Color = Color3.fromRGB(65, 65, 65)}, 0.2)
-        end
-    end)
-    wmHover.MouseLeave:Connect(function()
-        tween_to(self.watermark_frame, {BackgroundTransparency = 0.25}, 0.2)
-        if wmStroke then
-            tween_to(wmStroke, {Color = Color3.fromRGB(40, 40, 40)}, 0.2)
-        end
-    end)
-
     make_draggable(self.watermark_frame, nil, self)
 end
 
@@ -4033,38 +3918,18 @@ function atom_ui:BuildMainFrame()
         BackgroundColor3 = self.config.AccentColor,
         BorderSizePixel = 0,
         Position = UDim2.new(0.18, 0, 0, 0),
-        Size = UDim2.new(0.64, 0, 0, 1.5),
+        Size = UDim2.new(0.64, 0, 0, 1),
         ZIndex = 3,
         Parent = self.main_frame
     })
     create("UIGradient", {
         Color = ColorSequence.new({
             ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)),
-            ColorSequenceKeypoint.new(0.1, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(0.9, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(0.12, Color3.new(1, 1, 1)),
+            ColorSequenceKeypoint.new(0.88, Color3.new(1, 1, 1)),
             ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
         }),
         Parent = accent_top_line
-    })
-    -- Accent line glow (subtle)
-    local accentGlow = create("Frame", {
-        Name = "AccentLineGlow",
-        BackgroundColor3 = self.config.AccentColor,
-        BackgroundTransparency = 0.85,
-        BorderSizePixel = 0,
-        Position = UDim2.new(0.18, 0, 0, 0),
-        Size = UDim2.new(0.64, 0, 0, 4),
-        ZIndex = 2,
-        Parent = self.main_frame
-    })
-    create("UIGradient", {
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.new(0, 0, 0)),
-            ColorSequenceKeypoint.new(0.15, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(0.85, Color3.new(1, 1, 1)),
-            ColorSequenceKeypoint.new(1, Color3.new(0, 0, 0))
-        }),
-        Parent = accentGlow
     })
     self._accentTopLine = accent_top_line
 
@@ -4225,17 +4090,12 @@ function atom_ui:BuildMainFrame()
         end)
 
         resize_button.MouseEnter:Connect(function()
-            tween_to(resize_handle:FindFirstChildOfClass("ImageLabel"), {ImageColor3 = Color3.fromRGB(180, 180, 180), ImageTransparency = 0}, 0.12)
-            tween_to(resize_handle:FindFirstChildOfClass("ImageLabel"), {Rotation = 135}, 0.2)
+            tween_to(resize_handle:FindFirstChildOfClass("ImageLabel"), {ImageColor3 = Color3.fromRGB(160, 160, 160), ImageTransparency = 0}, 0.15)
         end)
         resize_button.MouseLeave:Connect(function()
             if not is_resizing then
                 tween_to(resize_handle:FindFirstChildOfClass("ImageLabel"), {ImageColor3 = Color3.fromRGB(72, 72, 72), ImageTransparency = 0.2}, 0.15)
-                tween_to(resize_handle:FindFirstChildOfClass("ImageLabel"), {Rotation = 90}, 0.2)
             end
-        end)
-        resize_button.MouseButton1Down:Connect(function()
-            tween_to(resize_handle:FindFirstChildOfClass("ImageLabel"), {ImageColor3 = Color3.fromRGB(200, 200, 200)}, 0.08)
         end)
     end
 
@@ -4259,20 +4119,6 @@ function atom_ui:BuildMainFrame()
         TextTruncate = Enum.TextTruncate.AtEnd, TextXAlignment = Enum.TextXAlignment.Left, Parent = self.main_frame
     })
     table.insert(self._gradientLabels, self.hub_name_label)
-
-    -- Hub name hover: subtle glow
-    local hubHover = create("TextButton", {
-        Text = "", BackgroundTransparency = 1,
-        Size = UDim2.new(0, headerNameMaxWidth, 0, 20 * scale_factor),
-        Position = UDim2.new(0, headerLeftPadding, 0, 13 * scale_factor),
-        Parent = self.main_frame
-    })
-    hubHover.MouseEnter:Connect(function()
-        tween_to(self.hub_name_label, {TextColor3 = Color3.fromRGB(235, 235, 235)}, 0.15)
-    end)
-    hubHover.MouseLeave:Connect(function()
-        tween_to(self.hub_name_label, {TextColor3 = Color3.new(1, 1, 1)}, 0.15)
-    end)
     
     local playerName = local_player.Name
     self.user_name_label = create("TextLabel", {
@@ -4291,30 +4137,6 @@ function atom_ui:BuildMainFrame()
         Size = UDim2.new(0, headerAvatarSize, 0, headerAvatarSize), Parent = self.main_frame
     })
     create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = self.avatar_image})
-
-    -- Avatar hover glow ring
-    local avatarRing = create("UIStroke", {
-        Color = self.config.AccentColor,
-        Thickness = 1.5,
-        Transparency = 1,
-        Parent = self.avatar_image
-    })
-    local avatarHover = create("TextButton", {
-        Text = "", BackgroundTransparency = 1,
-        Size = UDim2.new(1, 6, 1, 6),
-        Position = UDim2.new(0, -3, 0, -3),
-        Parent = self.avatar_image
-    })
-    avatarHover.MouseEnter:Connect(function()
-        tween_to(avatarRing, {Transparency = 0.4}, 0.2)
-        tween_to(self.avatar_image, {Size = UDim2.new(0, headerAvatarSize + 2, 0, headerAvatarSize + 2)}, 0.2)
-        tween_to(self.avatar_image, {Position = UDim2.new(0, avatarX - 1, 0, 16 * scale_factor)}, 0.2)
-    end)
-    avatarHover.MouseLeave:Connect(function()
-        tween_to(avatarRing, {Transparency = 1}, 0.2)
-        tween_to(self.avatar_image, {Size = UDim2.new(0, headerAvatarSize, 0, headerAvatarSize)}, 0.2)
-        tween_to(self.avatar_image, {Position = UDim2.new(0, avatarX, 0, 17 * scale_factor)}, 0.2)
-    end)
     
     self.separator_line = create("Frame", {
         BackgroundColor3 = Color3.fromRGB(255, 255, 255),
@@ -4367,26 +4189,14 @@ function atom_ui:BuildMainFrame()
         Text = "", BackgroundTransparency = 1, Size = UDim2.new(1, 0, 1, 0),
         ZIndex = 5, Parent = self.minimize_btn
     })
-    minimize_click.MouseButton1Click:Connect(function()
-        self:Toggle()
-        -- Click pulse
-        local mSize = self.minimize_btn.AbsoluteSize
-        tween_to(self.minimize_btn, {Size = UDim2.new(0, mSize.X * 0.85, 0, mSize.Y * 0.85)}, 0.06)
-        task.delay(0.06, function()
-            if self.minimize_btn and self.minimize_btn.Parent then
-                tween_to(self.minimize_btn, {Size = UDim2.new(0, 20 * scale_factor, 0, 20 * scale_factor)}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-            end
-        end)
-    end)
+    minimize_click.MouseButton1Click:Connect(function() self:Toggle() end)
     minimize_click.MouseEnter:Connect(function()
         tween_to(self.minimize_btn, {BackgroundColor3 = Color3.fromRGB(55, 35, 35)}, 0.15)
         tween_to(self.minimize_btn:FindFirstChildOfClass("ImageLabel"), {ImageColor3 = Color3.fromRGB(255, 80, 80)}, 0.15)
-        tween_to(self.minimize_btn:FindFirstChildOfClass("UIStroke"), {Color = Color3.fromRGB(255, 80, 80)}, 0.15)
     end)
     minimize_click.MouseLeave:Connect(function()
         tween_to(self.minimize_btn, {BackgroundColor3 = Color3.fromRGB(22, 22, 22)}, 0.15)
         tween_to(self.minimize_btn:FindFirstChildOfClass("ImageLabel"), {ImageColor3 = Color3.fromRGB(75, 75, 75)}, 0.15)
-        tween_to(self.minimize_btn:FindFirstChildOfClass("UIStroke"), {Color = Color3.fromRGB(38, 38, 38)}, 0.15)
     end)
 
     self.search_frame = create("Frame", {
@@ -4422,28 +4232,6 @@ function atom_ui:BuildMainFrame()
     self:_TrackConnection(self.search_box:GetPropertyChangedSignal("Text"):Connect(function()
         self:SetSearchFilter(self.search_box.Text)
     end))
-
-    -- Search focus animations
-    local searchIcon = self.search_frame:FindFirstChildOfClass("ImageLabel")
-    local searchStroke = self.search_frame:FindFirstChildOfClass("UIStroke")
-    self.search_box.Focused:Connect(function()
-        if searchStroke then
-            tween_to(searchStroke, {Color = self.config.AccentColor, Transparency = 0}, 0.2)
-        end
-        if searchIcon then
-            tween_to(searchIcon, {ImageColor3 = self.config.AccentColor}, 0.2)
-        end
-        tween_to(self.search_frame, {BackgroundColor3 = Color3.fromRGB(24, 24, 24)}, 0.2)
-    end)
-    self.search_box.FocusLost:Connect(function()
-        if searchStroke then
-            tween_to(searchStroke, {Color = Color3.fromRGB(33, 33, 33), Transparency = 0}, 0.2)
-        end
-        if searchIcon then
-            tween_to(searchIcon, {ImageColor3 = Color3.fromRGB(120, 120, 120)}, 0.2)
-        end
-        tween_to(self.search_frame, {BackgroundColor3 = Color3.fromRGB(19, 19, 19)}, 0.2)
-    end)
     
     self.section_scroll = create("ScrollingFrame", {
         BackgroundTransparency = 1, Position = UDim2.new(0, 17, 0, 75 * scale_factor),
@@ -4783,9 +4571,7 @@ function atom_ui:BuildMainFrame()
             end
         end
         local optionY = 0
-        local optIndex = 0
         for _, modeName in ipairs(self._overlayModes) do
-            optIndex = optIndex + 1
             local isSelected = modeName == self._overlayMode
             local optionFrame = create("Frame", {
                 BackgroundColor3 = isSelected and Color3.fromRGB(33, 33, 33) or Color3.fromRGB(23, 23, 23),
@@ -4898,13 +4684,11 @@ function atom_ui:BuildMainFrame()
         if not overlayDropdownOpen then
             tween_to(overlayPickerFrame, {BackgroundColor3 = Color3.fromRGB(35, 35, 35)}, 0.12)
         end
-        tween_to(overlayArrowImage, {ImageColor3 = Color3.fromRGB(190, 190, 190)}, 0.12)
     end)
     overlayPickerButton.MouseLeave:Connect(function()
         if not overlayDropdownOpen then
             tween_to(overlayPickerFrame, {BackgroundColor3 = Color3.fromRGB(29, 29, 29)}, 0.12)
         end
-        tween_to(overlayArrowImage, {ImageColor3 = Color3.fromRGB(132, 132, 132)}, 0.12)
     end)
 
     rowY = rowY + rowStep
@@ -4961,19 +4745,6 @@ function atom_ui:BuildMainFrame()
     })
     fontCycleButton.MouseButton1Click:Connect(function()
         self:SetFontPreset(self._fontPresetIndex + 1)
-        -- Click feedback
-        tween_to(fontCycleFrame, {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}, 0.06)
-        task.delay(0.06, function()
-            if fontCycleFrame and fontCycleFrame.Parent then
-                tween_to(fontCycleFrame, {BackgroundColor3 = Color3.fromRGB(29, 29, 29)}, 0.18)
-            end
-        end)
-    end)
-    fontCycleButton.MouseEnter:Connect(function()
-        tween_to(fontCycleFrame, {BackgroundColor3 = Color3.fromRGB(38, 38, 38)}, 0.15)
-    end)
-    fontCycleButton.MouseLeave:Connect(function()
-        tween_to(fontCycleFrame, {BackgroundColor3 = Color3.fromRGB(29, 29, 29)}, 0.15)
     end)
 
     local accentRowY = rowY + 28 * scale_factor
@@ -4996,32 +4767,18 @@ function atom_ui:BuildMainFrame()
         Color3.fromRGB(185, 108, 255)
     }
     for index, color in ipairs(accentColors) do
-        local swatchContainer = create("Frame", {
-            BackgroundTransparency = 1,
-            Position = UDim2.new(0, (56 + (index - 1) * 22) * scale_factor, 0, accentRowY - 3 * scale_factor),
-            Size = UDim2.new(0, 20 * scale_factor, 0, 20 * scale_factor),
-            Parent = self.settings_panel
-        })
         local swatch = create("Frame", {
             BackgroundColor3 = color,
-            AnchorPoint = Vector2.new(0.5, 0.5),
-            Position = UDim2.new(0.5, 0, 0.5, 0),
+            Position = UDim2.new(0, (58 + (index - 1) * 22) * scale_factor, 0, accentRowY - 1 * scale_factor),
             Size = UDim2.new(0, 16 * scale_factor, 0, 16 * scale_factor),
-            Parent = swatchContainer
+            Parent = self.settings_panel
         })
         create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = swatch})
-        -- Selection ring (hidden by default)
-        local swatchRing = create("UIStroke", {
-            Color = Color3.fromRGB(255, 255, 255),
-            Thickness = 2,
-            Transparency = 1,
-            Parent = swatch
-        })
         local swatchClick = create("TextButton", {
             Text = "",
             BackgroundTransparency = 1,
             Size = UDim2.new(1, 0, 1, 0),
-            Parent = swatchContainer
+            Parent = swatch
         })
         swatchClick.MouseButton1Click:Connect(function()
             self:SetAccentColor(color)
@@ -5029,21 +4786,6 @@ function atom_ui:BuildMainFrame()
             overlayToggleRef:Set(self._uiVisualSettings.Snow, true)
             bgFxToggleRef:Set(self._uiVisualSettings.BackgroundEffects, true)
             gradientToggleRef:Set(self._uiVisualSettings.TextGradient, true)
-            -- Bounce animation
-            tween_to(swatch, {Size = UDim2.new(0, 12 * scale_factor, 0, 12 * scale_factor)}, 0.08)
-            task.delay(0.08, function()
-                if swatch and swatch.Parent then
-                    tween_to(swatch, {Size = UDim2.new(0, 16 * scale_factor, 0, 16 * scale_factor)}, 0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-                end
-            end)
-        end)
-        swatchClick.MouseEnter:Connect(function()
-            tween_to(swatch, {Size = UDim2.new(0, 19 * scale_factor, 0, 19 * scale_factor)}, 0.15, Enum.EasingStyle.Quint)
-            tween_to(swatchRing, {Transparency = 0.6}, 0.15)
-        end)
-        swatchClick.MouseLeave:Connect(function()
-            tween_to(swatch, {Size = UDim2.new(0, 16 * scale_factor, 0, 16 * scale_factor)}, 0.18, Enum.EasingStyle.Quint)
-            tween_to(swatchRing, {Transparency = 1}, 0.18)
         end)
     end
 
@@ -5051,26 +4793,15 @@ function atom_ui:BuildMainFrame()
         self.settings_open = openState == true
         if self.settings_open then
             self.settings_panel.Visible = true
-            -- Panel slide open
-            tween_to(self.settings_panel, {Size = UDim2.new(0, settingsPanelWidth, 0, settingsPanelHeight)}, 0.25, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+            tween_to(self.settings_panel, {Size = UDim2.new(0, settingsPanelWidth, 0, settingsPanelHeight)}, 0.22)
             tween_to(self.settings_btn_frame, {BackgroundColor3 = Color3.fromRGB(30, 30, 30)}, 0.2)
             tween_to(self.settings_btn_stroke, {Color = self.config.AccentColor:Lerp(Color3.fromRGB(20, 20, 20), 0.45)}, 0.2)
-            -- Settings icon spins on open
-            local sIcon = self.settings_btn_frame:FindFirstChildOfClass("ImageLabel")
-            if sIcon then
-                tween_to(sIcon, {Rotation = 45}, 0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-            end
         else
             closeOverlayDropdown(true)
-            tween_to(self.settings_panel, {Size = UDim2.new(0, settingsPanelWidth, 0, 0)}, 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+            tween_to(self.settings_panel, {Size = UDim2.new(0, settingsPanelWidth, 0, 0)}, 0.18, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
             tween_to(self.settings_btn_frame, {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}, 0.2)
             tween_to(self.settings_btn_stroke, {Color = Color3.fromRGB(45, 45, 45)}, 0.2)
-            -- Settings icon spins back
-            local sIcon = self.settings_btn_frame:FindFirstChildOfClass("ImageLabel")
-            if sIcon then
-                tween_to(sIcon, {Rotation = 0}, 0.2, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-            end
-            task.delay(0.2, function()
+            task.delay(0.18, function()
                 if self.settings_panel and self.settings_panel.Parent and not self.settings_open then
                     self.settings_panel.Visible = false
                 end
@@ -5080,61 +4811,28 @@ function atom_ui:BuildMainFrame()
 
     settingsToggleButton.MouseButton1Click:Connect(function()
         setSettingsPanelOpen(not self.settings_open)
-        -- Subtle click scale feedback
-        tween_to(self.settings_btn_frame, {Size = UDim2.new(0, 112 * scale_factor, 0, 20 * scale_factor)}, 0.06)
-        task.delay(0.06, function()
-            if self.settings_btn_frame and self.settings_btn_frame.Parent then
-                tween_to(self.settings_btn_frame, {Size = UDim2.new(0, 116 * scale_factor, 0, 22 * scale_factor)}, 0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-            end
-        end)
     end)
     settingsToggleButton.MouseEnter:Connect(function()
         tween_to(self.settings_btn_frame, {BackgroundColor3 = Color3.fromRGB(28, 28, 28)}, 0.15)
-        tween_to(self.settings_btn_stroke, {Color = Color3.fromRGB(65, 65, 65)}, 0.15)
-        -- Subtle icon brightness
-        local settingsIcon = self.settings_btn_frame:FindFirstChildOfClass("ImageLabel")
-        if settingsIcon then
-            tween_to(settingsIcon, {ImageColor3 = Color3.fromRGB(200, 200, 200)}, 0.15)
-        end
     end)
     settingsToggleButton.MouseLeave:Connect(function()
         if not self.settings_open then
             tween_to(self.settings_btn_frame, {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}, 0.15)
-            tween_to(self.settings_btn_stroke, {Color = Color3.fromRGB(45, 45, 45)}, 0.15)
-        end
-        local settingsIcon = self.settings_btn_frame:FindFirstChildOfClass("ImageLabel")
-        if settingsIcon then
-            tween_to(settingsIcon, {ImageColor3 = Color3.fromRGB(165, 165, 165)}, 0.15)
         end
     end)
     -- Sleek floating toggle button (appears when UI is closed)
-    local ft_size = 38 * scale_factor
     self.floating_toggle = create("ImageLabel", {
         Name = "AtomFloatingToggle",
         Image = atomic_logo,
         ImageColor3 = self.config.AccentColor,
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 14, 0, 14),
-        Size = UDim2.new(0, ft_size, 0, ft_size),
+        Size = UDim2.new(0, 38 * scale_factor, 0, 38 * scale_factor),
         AnchorPoint = Vector2.new(0, 0),
         ZIndex = 99999,
         Parent = self.screen_gui,
         Visible = false,
         Active = true
-    })
-
-    -- Floating toggle subtle shadow
-    local ft_shadow = create("ImageLabel", {
-        Name = "FTShadow",
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://5028857084",
-        ImageColor3 = Color3.fromRGB(0, 0, 0),
-        ImageTransparency = 0.7,
-        Size = UDim2.new(1.5, 0, 1.5, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 2),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        ZIndex = 99998,
-        Parent = self.floating_toggle
     })
 
     local ft_click = create("TextButton", {
@@ -5148,23 +4846,12 @@ function atom_ui:BuildMainFrame()
 
     ft_click.MouseButton1Click:Connect(function()
         self:Toggle()
-        -- Click pulse
-        tween_to(self.floating_toggle, {Size = UDim2.new(0, ft_size * 0.82, 0, ft_size * 0.82)}, 0.07)
-        task.delay(0.07, function()
-            if self.floating_toggle and self.floating_toggle.Parent then
-                tween_to(self.floating_toggle, {Size = UDim2.new(0, ft_size, 0, ft_size)}, 0.25, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-            end
-        end)
     end)
     ft_click.MouseEnter:Connect(function()
-        tween_to(self.floating_toggle, {Size = UDim2.new(0, ft_size + 4, 0, ft_size + 4)}, 0.18, Enum.EasingStyle.Quint)
         tween_to(self.floating_toggle, {ImageColor3 = Color3.new(1, 1, 1)}, 0.15)
-        tween_to(ft_shadow, {ImageTransparency = 0.45}, 0.18)
     end)
     ft_click.MouseLeave:Connect(function()
-        tween_to(self.floating_toggle, {Size = UDim2.new(0, ft_size, 0, ft_size)}, 0.18, Enum.EasingStyle.Quint)
         tween_to(self.floating_toggle, {ImageColor3 = self.config.AccentColor}, 0.15)
-        tween_to(ft_shadow, {ImageTransparency = 0.7}, 0.18)
     end)
 end
 
@@ -5409,30 +5096,6 @@ function atom_ui:Notify(config)
         {Size = UDim2.new(0, 0, 1, 0)}
     )
 
-    -- Pause progress on hover
-    local notifHover = create("TextButton", {
-        Text = "", BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 1, 0),
-        ZIndex = 10, Parent = notificationFrame
-    })
-    local isPaused = false
-    notifHover.MouseEnter:Connect(function()
-        if not isPaused then
-            isPaused = true
-            progressTween:Pause()
-            tween_to(notificationStroke, {Transparency = 0.2}, 0.2)
-            tween_to(glowEffect, {ImageTransparency = 0.65}, 0.2)
-        end
-    end)
-    notifHover.MouseLeave:Connect(function()
-        if isPaused then
-            isPaused = false
-            progressTween:Play()
-            tween_to(notificationStroke, {Transparency = 0}, 0.2)
-            tween_to(glowEffect, {ImageTransparency = 0.8}, 0.2)
-        end
-    end)
-
     table.insert(self.notifications, notificationFrame)
     while #self.notifications > 5 do
         local oldestNotification = table.remove(self.notifications, 1)
@@ -5452,9 +5115,7 @@ function atom_ui:Notify(config)
         if notifDescription then
             tween_to(notifDescription, {TextTransparency = 0}, 0.24)
         end
-        if not isPaused then
-            progressTween:Play()
-        end
+        progressTween:Play()
     end)
     
     task.delay(config.Duration, function()
@@ -5502,14 +5163,7 @@ function atom_ui:AddSection(config)
         BackgroundColor3 = Color3.fromRGB(16, 16, 16), Position = UDim2.new(0, 1, 0, 2),
         Size = UDim2.new(0, 158 * scale_factor, 0, 30 * scale_factor), Parent = sectionObj.container
     })
-    create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = sectionObj.mainFrame})
-    -- Subtle section stroke
-    create("UIStroke", {
-        Color = Color3.fromRGB(30, 30, 30),
-        Thickness = 1,
-        Transparency = 0.5,
-        Parent = sectionObj.mainFrame
-    })
+    create("UICorner", {CornerRadius = UDim.new(0, 8), Parent = sectionObj.mainFrame})
     
     create("ImageLabel", {
         Image = config.Icon, BackgroundTransparency = 1,
@@ -5548,6 +5202,17 @@ function atom_ui:AddSection(config)
     
     self:_TrackConnection(sectionObj.tab_layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(update_container_size))
     
+    self:_TrackConnection(expandButtonImg.MouseButton1Click:Connect(function()
+        sectionObj.isExpanded = not sectionObj.isExpanded
+        tween_to(expandButtonImg, {Rotation = sectionObj.isExpanded and 0 or -90}, 0.25)
+        if sectionObj.isExpanded then
+            local tabsHeight = sectionObj.tab_layout.AbsoluteContentSize.Y
+            tween_to(sectionObj.container, {Size = UDim2.new(0, 160 * scale_factor, 0, 34 * scale_factor + tabsHeight + 10)}, 0.25)
+        else
+            tween_to(sectionObj.container, {Size = UDim2.new(0, 160 * scale_factor, 0, 34 * scale_factor)}, 0.25)
+        end
+    end))
+
     function sectionObj:AddTab(tabConfig)
         tabConfig = tabConfig or {}
         tabConfig.Name = tabConfig.Name or "Tab"
@@ -5635,13 +5300,10 @@ function atom_ui:AddSection(config)
             tabObj.isActive = true
             tabObj.content_scroll.Position = UDim2.new(0, 14 * scale_factor, 0, 4)
             tabObj.content_scroll.Visible = true
-            -- Content slide-in with subtle fade
-            tabObj.content_scroll.ScrollBarImageTransparency = 1
-            tween_to(tabObj.content_scroll, {Position = UDim2.new(0, 4, 0, 4)}, 0.3, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+            tween_to(tabObj.content_scroll, {Position = UDim2.new(0, 4, 0, 4)}, 0.26, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
             tween_to(tabObj.button_frame, {BackgroundTransparency = 0}, 0.22)
             tween_to(tabObj.iconImg, {ImageColor3 = Color3.new(1, 1, 1)}, 0.22)
             tween_to(tabObj.nameLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.22)
-            -- Header text slide animation
             sectionObj.Library.tab_name_label.Text = tabConfig.Name
             sectionObj.Library.tab_desc_label.Text = tabConfig.Description
         end
@@ -5674,31 +5336,17 @@ function atom_ui:AddSection(config)
             tween_to(tabObj.nameLabel, {TextColor3 = Color3.fromRGB(89, 89, 89)}, 0.18)
         end
         
-        tabClickButton.MouseButton1Click:Connect(function()
-            if not tabObj.isActive then
-                tabObj:Activate()
-                -- Subtle press feedback
-                tween_to(tabObj.button_frame, {Size = UDim2.new(0, 136 * scale_factor, 0, 27 * scale_factor)}, 0.06)
-                task.delay(0.06, function()
-                    if tabObj.button_frame and tabObj.button_frame.Parent then
-                        tween_to(tabObj.button_frame, {Size = tabObj.defaultButtonSize}, 0.2, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-                    end
-                end)
-            end
-        end)
+        tabClickButton.MouseButton1Click:Connect(function() if not tabObj.isActive then tabObj:Activate() end end)
         tabClickButton.MouseEnter:Connect(function()
             if not tabObj.isActive then
-                tween_to(tabObj.nameLabel, {TextColor3 = Color3.fromRGB(160, 160, 160)}, 0.18)
-                tween_to(tabObj.iconImg, {ImageColor3 = Color3.fromRGB(140, 140, 140)}, 0.18)
-                tween_to(tabObj.button_frame, {BackgroundTransparency = 0.92}, 0.18)
-                tween_to(tabObj.button_frame, {BackgroundColor3 = Color3.fromRGB(50, 50, 50)}, 0.18)
+                tween_to(tabObj.nameLabel, {TextColor3 = Color3.fromRGB(150, 150, 150)}, 0.2)
+                tween_to(tabObj.iconImg, {ImageColor3 = Color3.fromRGB(150, 150, 150)}, 0.2)
             end
         end)
         tabClickButton.MouseLeave:Connect(function()
             if not tabObj.isActive then
-                tween_to(tabObj.nameLabel, {TextColor3 = Color3.fromRGB(89, 89, 89)}, 0.18)
-                tween_to(tabObj.iconImg, {ImageColor3 = Color3.fromRGB(89, 89, 89)}, 0.18)
-                tween_to(tabObj.button_frame, {BackgroundTransparency = 1}, 0.18)
+                tween_to(tabObj.nameLabel, {TextColor3 = Color3.fromRGB(89, 89, 89)}, 0.2)
+                tween_to(tabObj.iconImg, {ImageColor3 = Color3.fromRGB(89, 89, 89)}, 0.2)
             end
         end)
 
@@ -5748,21 +5396,6 @@ function atom_ui:AddSection(config)
                 Image = groupConfig.Icon, BackgroundTransparency = 1, Position = UDim2.new(0, 10, 0, 10 * scale_factor),
                 Size = UDim2.new(0, 17 * scale_factor, 0, 17 * scale_factor), Parent = groupObj.mainFrame
             })
-
-            -- Group hover detection
-            local groupHoverBtn = create("TextButton", {
-                Text = "", BackgroundTransparency = 1,
-                Size = UDim2.new(1, 0, 0, 38 * scale_factor),
-                ZIndex = 5, Parent = groupObj.mainFrame
-            })
-            groupHoverBtn.MouseEnter:Connect(function()
-                tween_to(groupStrokeThing, {Color = Color3.fromRGB(55, 55, 55)}, 0.2)
-                tween_to(groupObj.mainFrame, {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}, 0.2)
-            end)
-            groupHoverBtn.MouseLeave:Connect(function()
-                tween_to(groupStrokeThing, {Color = Color3.fromRGB(33, 33, 33)}, 0.2)
-                tween_to(groupObj.mainFrame, {BackgroundColor3 = Color3.fromRGB(18, 18, 18)}, 0.2)
-            end)
             
             create("TextLabel", {
                 FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
