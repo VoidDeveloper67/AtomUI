@@ -1,3 +1,8 @@
+-- AtomUI Library
+-- Created by: von63rd
+-- Version: 1.1.0
+-- A modern, sleek Roblox UI library for executors
+
 --#region ══╗ Services ╔═════════════════════════════════════════════════════════
 
 local safe_clone = cloneref or function(service) return service end
@@ -163,9 +168,22 @@ local function create(className, properties)
 end
 
 local function tween_to(instance, properties, duration, easingStyle, easingDirection)
-    local tween_info = TweenInfo.new(duration or 0.22, easingStyle or Enum.EasingStyle.Quint, easingDirection or Enum.EasingDirection.Out)
-    local tween_obj = tween_service:Create(instance, tween_info, properties)
-    tween_obj:Play()
+    if not instance or typeof(instance) ~= "Instance" then
+        return nil
+    end
+    local ok, tween_info = pcall(function()
+        return TweenInfo.new(duration or 0.22, easingStyle or Enum.EasingStyle.Quint, easingDirection or Enum.EasingDirection.Out)
+    end)
+    if not ok then
+        return nil
+    end
+    local ok2, tween_obj = pcall(function()
+        return tween_service:Create(instance, tween_info, properties)
+    end)
+    if not ok2 or not tween_obj then
+        return nil
+    end
+    pcall(function() tween_obj:Play() end)
     return tween_obj
 end
 
@@ -3554,9 +3572,17 @@ function atom_ui:Toggle()
     self.is_visible = not self.is_visible
     local openPosition = self._mainFrameOpenPosition or UDim2.new(0.5, -392 * scale_factor, 0.5, -262 * scale_factor)
     local closedPosition = self._mainFrameClosedPosition or UDim2.new(0.5, openPosition.X.Offset, 1.5, 0)
-    tween_to(self.main_frame, {
-        Position = self.is_visible and openPosition or closedPosition
-    }, 0.4, Enum.EasingStyle.Quint, self.is_visible and Enum.EasingDirection.Out or Enum.EasingDirection.In)
+    if self.is_visible then
+        tween_to(self.main_frame, {Position = openPosition}, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        tween_to(self.backdrop_frame, {BackgroundTransparency = 0.35}, 0.45)
+        if self.blur then self.blur.Enabled = true end
+        if self.floating_toggle then self.floating_toggle.Visible = false end
+    else
+        tween_to(self.main_frame, {Position = closedPosition}, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
+        tween_to(self.backdrop_frame, {BackgroundTransparency = 1}, 0.35)
+        if self.blur then self.blur.Enabled = false end
+        if self.floating_toggle then self.floating_toggle.Visible = true end
+    end
     self:_ApplyOpenCloseVisuals(false)
 end
 
@@ -4701,6 +4727,119 @@ function atom_ui:BuildMainFrame()
         end
     end)
 end
+
+
+    -- Sleek floating toggle button (appears when UI is closed)
+    self.floating_toggle = create("Frame", {
+        Name = "AtomFloatingToggle",
+        BackgroundColor3 = Color3.fromRGB(20, 20, 20),
+        Position = UDim2.new(0, 10, 0, 10),
+        Size = UDim2.new(0, 34 * scale_factor, 0, 34 * scale_factor),
+        AnchorPoint = Vector2.new(0, 0),
+        ZIndex = 99999,
+        Parent = self.screen_gui,
+        Visible = false,
+        Active = true
+    })
+    create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = self.floating_toggle})
+    create("UIStroke", {Color = Color3.fromRGB(40, 40, 40), Thickness = 1, Parent = self.floating_toggle})
+
+    local ft_icon = create("ImageLabel", {
+        Image = default_icons.section,
+        ImageColor3 = self.config.AccentColor,
+        BackgroundTransparency = 1,
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        Size = UDim2.new(0.45, 0, 0.45, 0),
+        ZIndex = 99999,
+        Parent = self.floating_toggle
+    })
+
+    local ft_click = create("TextButton", {
+        Text = "",
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 1, 0),
+        ZIndex = 99999,
+        Parent = self.floating_toggle
+    })
+
+    ft_click.MouseButton1Click:Connect(function()
+        self:Toggle()
+    end)
+    ft_click.MouseEnter:Connect(function()
+        tween_to(self.floating_toggle, {BackgroundColor3 = Color3.fromRGB(32, 32, 32)}, 0.15)
+        tween_to(ft_icon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.15)
+    end)
+    ft_click.MouseLeave:Connect(function()
+        tween_to(self.floating_toggle, {BackgroundColor3 = Color3.fromRGB(20, 20, 20)}, 0.15)
+        tween_to(ft_icon, {ImageColor3 = self.config.AccentColor}, 0.15)
+    end)
+
+
+function atom_ui:SetWatermark(config)
+    if self._destroyed then return end
+    config = config or {}
+    config.Text = config.Text or "Watermark"
+    config.Position = config.Position or "TopRight"
+
+    if self.watermark_frame then
+        pcall(function() self.watermark_frame:Destroy() end)
+    end
+
+    local positions = {
+        TopRight = UDim2.new(1, -12, 0, 12),
+        TopLeft = UDim2.new(0, 12, 0, 12),
+        BottomRight = UDim2.new(1, -12, 1, -12),
+        BottomLeft = UDim2.new(0, 12, 1, -12)
+    }
+
+    self.watermark_frame = create("Frame", {
+        BackgroundColor3 = Color3.fromRGB(14, 14, 14),
+        BackgroundTransparency = 0.25,
+        Position = positions[config.Position] or positions.TopRight,
+        AnchorPoint = Vector2.new(1, 0),
+        Size = UDim2.new(0, 200, 0, 28),
+        ZIndex = 99999,
+        Parent = self.screen_gui
+    })
+    create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = self.watermark_frame})
+    create("UIStroke", {Color = Color3.fromRGB(40, 40, 40), Thickness = 1, Parent = self.watermark_frame})
+
+    self.watermark_label = create("TextLabel", {
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        TextColor3 = Color3.fromRGB(210, 210, 210),
+        Text = config.Text,
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, -16, 1, 0),
+        Position = UDim2.new(0, 8, 0, 0),
+        TextSize = 12 * scale_factor,
+        TextXAlignment = Enum.TextXAlignment.Center,
+        Parent = self.watermark_frame
+    })
+
+    local bounds = text_service:GetTextSize(
+        config.Text,
+        12 * scale_factor,
+        Enum.Font.GothamSemibold,
+        Vector2.new(800, 40)
+    )
+    self.watermark_frame.Size = UDim2.new(0, math.max(100, bounds.X + 24), 0, 28)
+end
+
+function atom_ui:SetWatermarkText(text)
+    if self._destroyed or not self.watermark_label then return end
+    self.watermark_label.Text = tostring(text or "")
+    local bounds = text_service:GetTextSize(
+        tostring(text or ""),
+        12 * scale_factor,
+        Enum.Font.GothamSemibold,
+        Vector2.new(800, 40)
+    )
+    if self.watermark_frame then
+        self.watermark_frame.Size = UDim2.new(0, math.max(100, bounds.X + 24), 0, 28)
+    end
+end
+
 
 function atom_ui:BuildNotificationHolder()
     self.notification_holder = create("Frame", {
@@ -6850,6 +6989,12 @@ function atom_ui:AddSection(config)
                 update_group_size()
                 return dividerFrame
             end
+                        function groupObj:AddSpacer(height)
+                height = tonumber(height) or 10
+                groupObj.element_y = groupObj.element_y + height * scale_factor
+                update_group_size()
+            end
+
             
             function groupObj:AddLabel(labelConfig)
                 labelConfig = labelConfig or {}
@@ -6880,6 +7025,16 @@ function atom_ui:AddSection(config)
                 update_group_size()
                 return labelText
             end
+                        function groupObj:AddParagraph(config)
+                config = config or {}
+                config.Text = config.Text or config.Content or "Paragraph text goes here."
+                return groupObj:AddLabel({
+                    Name = config.Text,
+                    Text = config.Text,
+                    Wrap = true
+                })
+            end
+
             
             function groupObj:AddTextInput(textInputConfig)
                 textInputConfig = textInputConfig or {}
@@ -7706,6 +7861,18 @@ function atom_ui.Demo()
 
     return lib
 end
+
+local function safe_wrap(fn, context)
+    return function(...)
+        local ok, result = pcall(fn, ...)
+        if not ok then
+            warn("[AtomUI] " .. tostring(context) .. " error: " .. tostring(result))
+            return nil
+        end
+        return result
+    end
+end
+
 
 --#endregion═════════════════════════════════════════════════════════════════════
 
