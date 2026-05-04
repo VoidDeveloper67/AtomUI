@@ -1,695 +1,411 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>AtomUI — Docs</title>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Bebas+Neue&display=swap" rel="stylesheet"/>
-<link rel="stylesheet" href="styles.css"/>
-</head>
-<body>
+A
+AtomUI v1.1
 
-<div class="bg-grid"></div>
-<div class="bg-orb bg-orb-1"></div>
-<div class="bg-orb bg-orb-2"></div>
+Guide
+Getting Started Quick Start Configuration
+API Reference
+Elements Library Methods Config System Notifications
+Resources
+Examples Demo GitHub
+Made by von63rd
+AtomUI Documentation
+A modern, feature-rich Roblox UI library for script executors. Build beautiful interfaces with smooth animations, auto-configuration, and 15+ built-in elements.
+Getting Started
+AtomUI is a single-file Lua library. Load it via game:HttpGet or require it locally. No dependencies needed.
+Requirements
+AtomUI requires a Roblox script executor with support for HttpGet, writefile/readfile, and basic Roblox services.
+Installation
+lualocal atom_ui = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"
+))()
+Basic Setup
+lualocal lib = atom_ui.new({
+    Name = "My Script",
+    AccentColor = Color3.fromRGB(2, 133, 255),
+    AutoConfig = true
+})
 
-<header>
-  <div class="logo">AtomUI</div>
-  <div class="logo-ver">v1.0</div>
-  <div class="header-right">
-    <a class="gh-btn" href="https://github.com/VoidDeveloper67/AtomUI" target="_blank">
-      <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
-      GitHub
-    </a>
-  </div>
-</header>
+-- Add a section
+local main = lib:AddSection({Name = "Main", Icon = "home"})
 
-<div class="layout">
+-- Add a tab
+local combat = main:AddTab({
+    Name = "Combat",
+    Description = "Combat settings",
+    Icon = "crosshair"
+})
 
-<aside id="sidebar">
-  <div class="nav-group-label">Getting Started</div>
-  <a class="nav-link" href="#intro"><span class="dot"></span>Introduction</a>
-  <a class="nav-link" href="#load"><span class="dot"></span>Loading</a>
-  <a class="nav-link" href="#quickstart"><span class="dot"></span>Quick Start</a>
-  <a class="nav-link" href="#structure"><span class="dot"></span>Structure</a>
+-- Add a group
+local aim = combat:AddGroup({
+    Name = "Aimbot",
+    Side = "Left",
+    Icon = "target"
+})
 
-  <div class="nav-group-label">API</div>
-  <a class="nav-link" href="#new"><span class="dot"></span>atom_ui.new()</a>
-  <a class="nav-link" href="#sections"><span class="dot"></span>Sections</a>
-  <a class="nav-link" href="#tabs"><span class="dot"></span>Tabs</a>
-  <a class="nav-link" href="#groups"><span class="dot"></span>Groups</a>
-
-  <div class="nav-group-label">Elements</div>
-  <a class="nav-link" href="#toggle"><span class="dot"></span>Toggle</a>
-  <a class="nav-link" href="#slider"><span class="dot"></span>Slider</a>
-  <a class="nav-link" href="#button"><span class="dot"></span>Button</a>
-  <a class="nav-link" href="#dropdown"><span class="dot"></span>Dropdown</a>
-  <a class="nav-link" href="#multidropdown"><span class="dot"></span>MultiDropdown</a>
-  <a class="nav-link" href="#keybind"><span class="dot"></span>Keybind</a>
-  <a class="nav-link" href="#keybindtoggle"><span class="dot"></span>KeybindToggle</a>
-  <a class="nav-link" href="#colorpicker"><span class="dot"></span>ColorPicker</a>
-  <a class="nav-link" href="#textinput"><span class="dot"></span>TextInput</a>
-  <a class="nav-link" href="#label"><span class="dot"></span>Label</a>
-  <a class="nav-link" href="#divider"><span class="dot"></span>Divider</a>
-
-  <div class="nav-group-label">Library Methods</div>
-  <a class="nav-link" href="#notify"><span class="dot"></span>Notify</a>
-  <a class="nav-link" href="#visibility"><span class="dot"></span>Visibility</a>
-  <a class="nav-link" href="#theming"><span class="dot"></span>Theming</a>
-  <a class="nav-link" href="#config"><span class="dot"></span>Config</a>
-  <a class="nav-link" href="#destroy"><span class="dot"></span>Destroy</a>
-
-  <div class="nav-group-label">Examples</div>
-  <a class="nav-link" href="#full-example"><span class="dot"></span>Full Script</a>
-</aside>
-
-<main>
-
-  <!-- HERO -->
-  <div class="hero">
-    <div class="hero-eyebrow"><span class="pulse"></span>Roblox UI Library</div>
-    <h1 class="hero-title">
-      <span class="word-atom">ATOM</span><span class="word-ui">UI</span>
-    </h1>
-    <p class="hero-sub">
-      A feature-rich exploit UI library for Roblox.<br>
-      Built by <strong>vonplayz_real</strong> &amp; <strong>DarealBloxfruiter</strong> — VoidHub project.
-    </p>
-    <div class="hero-load">
-      <div class="hero-load-bar">
-        <span>
-          <span class="term-dots"><i></i><i></i><i></i></span>
-          Load via executor
-        </span>
-        <button class="copy-btn" id="hero-copy" onclick="copyHero()">Copy</button>
-      </div>
-      <pre id="hero-code"><span class="kw">local</span> <span class="prop">AtomUI</span> <span class="kw">=</span> <span class="fn">loadstring</span>(<span class="fn">game</span>:<span class="fn">HttpGet</span>(
-    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/main/AtomUI.lua"</span>
-))()</pre>
-    </div>
-  </div>
-
-  <div class="section-divider"><span>GETTING STARTED</span></div>
-
-  <!-- INTRO -->
-  <div class="doc-section reveal" id="intro">
-    <div class="section-header">
-      <div class="section-tag">01 — intro</div>
-      <h2>Introduction <a class="anchor" href="#intro">#</a></h2>
-    </div>
-    <p>AtomUI is a fully self-contained Lua UI library for Roblox executor scripts. It provides a polished windowed interface with sections, tabs, groups, and a wide range of interactive elements — all with mobile and PC support, smooth animations, config persistence, and a live ESP preview panel.</p>
-    <div class="callout tip">
-      <div class="callout-icon">✦</div>
-      <p><strong>No dependencies.</strong> The library loads entirely from one file. Icons are fetched lazily from a GitHub-hosted icon pack.</p>
-    </div>
-  </div>
-
-  <!-- LOAD -->
-  <div class="doc-section reveal" id="load">
-    <div class="section-header">
-      <div class="section-tag">02 — load</div>
-      <h2>Loading <a class="anchor" href="#load">#</a></h2>
-    </div>
-    <p>Paste this at the top of any script. The library returns a table — assign it to a variable.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="kw">local</span> <span class="prop">AtomUI</span> <span class="kw">=</span> <span class="fn">loadstring</span>(<span class="fn">game</span>:<span class="fn">HttpGet</span>(
-    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/main/AtomUI.lua"</span>
-))()</pre>
-    </div>
-  </div>
-
-  <!-- QUICKSTART -->
-  <div class="doc-section reveal" id="quickstart">
-    <div class="section-header">
-      <div class="section-tag">03 — quickstart</div>
-      <h2>Quick Start <a class="anchor" href="#quickstart">#</a></h2>
-    </div>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="kw">local</span> <span class="prop">AtomUI</span> <span class="kw">=</span> <span class="fn">loadstring</span>(<span class="fn">game</span>:<span class="fn">HttpGet</span>(
-    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/main/AtomUI.lua"</span>
+-- Add elements
+aim:AddToggle({
+    Name = "Enabled",
+    Default = false,
+    Callback = function(v)
+        print("Aimbot:", v)
+    end
+})
+Quick Start
+Copy this complete example to get a fully working UI in seconds.
+lualocal atom_ui = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"
 ))()
 
-<span class="kw">local</span> <span class="prop">lib</span> <span class="kw">=</span> <span class="prop">AtomUI</span>.<span class="fn">new</span>({
-    <span class="key">Name</span>        <span class="kw">=</span> <span class="str">"VoidHub"</span>,
-    <span class="key">AccentColor</span> <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">138</span>, <span class="num">43</span>, <span class="num">226</span>),
-    <span class="key">AutoConfig</span>  <span class="kw">=</span> <span class="bool">true</span>
+local lib = atom_ui.new({
+    Name = "AtomUI Demo",
+    AccentColor = Color3.fromRGB(2, 133, 255),
+    AutoConfig = true,
+    ConfigFolder = "MyConfigs"
 })
 
-<span class="kw">local</span> <span class="prop">section</span> <span class="kw">=</span> <span class="prop">lib</span>:<span class="fn">AddSection</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Main"</span>, <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"sword"</span> })
-<span class="kw">local</span> <span class="prop">tab</span>     <span class="kw">=</span> <span class="prop">section</span>:<span class="fn">AddTab</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Combat"</span>, <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"crosshair"</span> })
-<span class="kw">local</span> <span class="prop">group</span>   <span class="kw">=</span> <span class="prop">tab</span>:<span class="fn">AddGroup</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Settings"</span>, <span class="key">Side</span> <span class="kw">=</span> <span class="str">"Left"</span> })
+-- Main Section
+local main = lib:AddSection({Name = "Main", Icon = "home"})
 
-<span class="prop">group</span>:<span class="fn">AddToggle</span>({
-    <span class="key">Name</span>     <span class="kw">=</span> <span class="str">"Auto Farm"</span>,
-    <span class="key">Default</span>  <span class="kw">=</span> <span class="bool">false</span>,
-    <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(val) <span class="fn">print</span>(<span class="str">"Auto Farm:"</span>, val) <span class="kw">end</span>
+-- Combat Tab
+local combat = main:AddTab({
+    Name = "Combat",
+    Description = "Combat settings",
+    Icon = "crosshair"
 })
 
-<span class="prop">lib</span>:<span class="fn">Notify</span>({ <span class="key">Title</span> <span class="kw">=</span> <span class="str">"VoidHub"</span>, <span class="key">Description</span> <span class="kw">=</span> <span class="str">"Loaded!"</span>, <span class="key">Duration</span> <span class="kw">=</span> <span class="num">4</span> })</pre>
-    </div>
-  </div>
+local left = combat:AddGroup({Name = "Aimbot", Side = "Left", Icon = "target"})
+left:AddToggle({Name = "Enabled", Default = false, Callback = function(v) print(v) end})
+left:AddSlider({Name = "FOV", Min = 10, Max = 800, Default = 120, Increment = 5, Callback = function(v) print(v) end})
+left:AddDropdown({Name = "Target", Options = {"Head", "Torso"}, Default = "Head", Callback = function(v) print(v) end})
 
-  <!-- STRUCTURE -->
-  <div class="doc-section reveal" id="structure">
-    <div class="section-header">
-      <div class="section-tag">04 — structure</div>
-      <h2>Structure <a class="anchor" href="#structure">#</a></h2>
-    </div>
-    <p>AtomUI uses a four-level hierarchy. Every UI element lives inside a Group.</p>
-    <div class="struct">
-      <span class="l0">lib</span>
-      <span class="l1"><span class="tree">└─ </span>Section  <span style="color:var(--sub2);font-size:11px">← lib:AddSection()</span></span>
-      <span class="l2"><span class="tree">└─ </span>Tab  <span style="color:var(--sub2);font-size:11px">← section:AddTab()</span></span>
-      <span class="l3"><span class="tree">└─ </span>Group  <span style="color:var(--sub2);font-size:11px">← tab:AddGroup()</span></span>
-      <span style="color:var(--pink);padding-left:88px;display:block;font-size:11px"><span class="tree">└─ </span>Elements (Toggle, Slider, Button, ...)</span>
-    </div>
-  </div>
+local right = combat:AddGroup({Name = "Visuals", Side = "Right", Icon = "eye"})
+right:AddToggle({Name = "Box ESP", Default = true, Callback = function(v) print(v) end})
+right:AddColorPicker({Name = "Color", Default = Color3.fromRGB(255, 0, 0), Callback = function(c) print(c) end})
 
-  <div class="section-divider"><span>API REFERENCE</span></div>
+-- Utility Tab
+local util = main:AddTab({Name = "Utility", Description = "Misc features", Icon = "tool"})
+local misc = util:AddGroup({Name = "Tools", Side = "Left", Icon = "tool"})
+misc:AddButton({Name = "Rejoin", Callback = function() game:GetService("TeleportService"):Teleport(game.PlaceId) end})
+misc:AddKeybind({Name = "Panic Key", Default = Enum.KeyCode.Delete, Callback = function() lib:Destroy() end})
 
-  <!-- atom_ui.new -->
-  <div class="doc-section reveal" id="new">
-    <div class="section-header">
-      <div class="section-tag">api</div>
-      <h2>atom_ui.new() <a class="anchor" href="#new">#</a></h2>
-    </div>
-    <p>Creates and renders the UI window. Returns a lib instance.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="kw">local</span> <span class="prop">lib</span> <span class="kw">=</span> <span class="prop">AtomUI</span>.<span class="fn">new</span>({
-    <span class="key">Name</span>            <span class="kw">=</span> <span class="str">"VoidHub"</span>,
-    <span class="key">AccentColor</span>     <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">138</span>, <span class="num">43</span>, <span class="num">226</span>),
-    <span class="key">BackgroundColor</span> <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">16</span>, <span class="num">16</span>, <span class="num">16</span>),
-    <span class="key">SecondaryColor</span>  <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">18</span>, <span class="num">18</span>, <span class="num">18</span>),
-    <span class="key">TextColor</span>       <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">255</span>, <span class="num">255</span>, <span class="num">255</span>),
-    <span class="key">SubTextColor</span>    <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">124</span>, <span class="num">124</span>, <span class="num">124</span>),
-    <span class="key">AutoConfig</span>      <span class="kw">=</span> <span class="bool">true</span>
-})</pre>
-    </div>
-    <div class="table-wrap">
-      <table>
-        <tr><th>Field</th><th>Type</th><th>Default</th><th>Description</th></tr>
-        <tr><td>Name</td><td><span class="type">string</span></td><td><span class="default">"o11 vision"</span></td><td>Window title</td></tr>
-        <tr><td>AccentColor</td><td><span class="type">Color3</span></td><td><span class="default">Blue</span></td><td>Main accent / highlight color</td></tr>
-        <tr><td>BackgroundColor</td><td><span class="type">Color3</span></td><td><span class="default">RGB(16,16,16)</span></td><td>Window background</td></tr>
-        <tr><td>SecondaryColor</td><td><span class="type">Color3</span></td><td><span class="default">RGB(18,18,18)</span></td><td>Secondary panel color</td></tr>
-        <tr><td>TextColor</td><td><span class="type">Color3</span></td><td><span class="default">White</span></td><td>Primary text color</td></tr>
-        <tr><td>SubTextColor</td><td><span class="type">Color3</span></td><td><span class="default">Grey</span></td><td>Secondary / dim text</td></tr>
-        <tr><td>AutoConfig</td><td><span class="type">bool</span></td><td><span class="default">false</span></td><td>Auto save &amp; restore all control values</td></tr>
-      </table>
-    </div>
-  </div>
+lib:Notify({
+    Title = "Ready",
+    Description = "Press RightCtrl to toggle the UI",
+    Duration = 5
+})
+Configuration
+The atom_ui.new() function accepts a config table with the following options:
+Option
+Type
+Default
+Description
+Name
+string
+"Hub"
+Window title
+AccentColor
+Color3
+fromRGB(2,133,255)
+Theme accent color
+AutoConfig
+boolean
+false
+Enable config system
+ConfigFolder
+string
+"AtomConfigs"
+Folder for config files
+ShowAutoSaveToggle
+boolean
+true
+Show auto-save in settings
+UseConfigSystem
+boolean
+true
+Enable config UI
+Watermark
+string
+nil
+Watermark text
+Tip
+When AutoConfig is enabled, settings are saved every 60 seconds and loaded automatically on startup.
+Elements
 
-  <!-- SECTIONS -->
-  <div class="doc-section reveal" id="sections">
-    <div class="section-header">
-      <div class="section-tag">api</div>
-      <h2>Sections <a class="anchor" href="#sections">#</a></h2>
-    </div>
-    <p>Sections are the top-level navigation items shown in the sidebar of the window.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="kw">local</span> <span class="prop">section</span> <span class="kw">=</span> <span class="prop">lib</span>:<span class="fn">AddSection</span>({
-    <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Main"</span>,
-    <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"sword"</span>  <span class="cmt">-- lucide icon name or rbxassetid://</span>
-})</pre>
-    </div>
-  </div>
+AddToggle
+On/off switch with smooth animation and color transitions.
 
-  <!-- TABS -->
-  <div class="doc-section reveal" id="tabs">
-    <div class="section-header">
-      <div class="section-tag">api</div>
-      <h2>Tabs <a class="anchor" href="#tabs">#</a></h2>
-    </div>
-    <p>Tabs live inside sections and appear as clickable buttons at the top of the content area.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="kw">local</span> <span class="prop">tab</span> <span class="kw">=</span> <span class="prop">section</span>:<span class="fn">AddTab</span>({
-    <span class="key">Name</span>        <span class="kw">=</span> <span class="str">"Combat"</span>,
-    <span class="key">Description</span> <span class="kw">=</span> <span class="str">"Combat settings"</span>,  <span class="cmt">-- optional subtitle</span>
-    <span class="key">Icon</span>        <span class="kw">=</span> <span class="str">"crosshair"</span>
-})</pre>
-    </div>
-  </div>
+AddSlider
+Draggable numeric slider with fill bar and value label.
 
-  <!-- GROUPS -->
-  <div class="doc-section reveal" id="groups">
-    <div class="section-header">
-      <div class="section-tag">api</div>
-      <h2>Groups <a class="anchor" href="#groups">#</a></h2>
-    </div>
-    <p>Groups are columns inside a tab. Set <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent2)">Side</code> to <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent2)">"Left"</code> or <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent2)">"Right"</code> to position them.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="kw">local</span> <span class="prop">group</span> <span class="kw">=</span> <span class="prop">tab</span>:<span class="fn">AddGroup</span>({
-    <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Aimbot"</span>,
-    <span class="key">Side</span> <span class="kw">=</span> <span class="str">"Left"</span>,   <span class="cmt">-- "Left" or "Right"</span>
-    <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"target"</span>
-})</pre>
-    </div>
-  </div>
+AddDropdown
+Single-select dropdown with search filter and auto-width.
 
-  <div class="section-divider"><span>ELEMENTS</span></div>
+AddMultiDropdown
+Multi-select dropdown with checkboxes for each option.
 
-  <!-- TOGGLE -->
-  <div class="doc-section reveal" id="toggle">
-    <div class="section-header">
-      <div class="section-tag">element</div>
-      <h2>Toggle <a class="anchor" href="#toggle">#</a></h2>
-    </div>
-    <p>A boolean on/off switch.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">group</span>:<span class="fn">AddToggle</span>({
-    <span class="key">Name</span>     <span class="kw">=</span> <span class="str">"Auto Farm"</span>,
-    <span class="key">Default</span>  <span class="kw">=</span> <span class="bool">false</span>,
-    <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(val)
-        <span class="cmt">-- val: boolean</span>
-    <span class="kw">end</span>
-})</pre>
-    </div>
-  </div>
+AddButton
+Clickable button with optional icon and locked state support.
 
-  <!-- SLIDER -->
-  <div class="doc-section reveal" id="slider">
-    <div class="section-header">
-      <div class="section-tag">element</div>
-      <h2>Slider <a class="anchor" href="#slider">#</a></h2>
-    </div>
-    <p>A draggable numeric slider with min, max, and increment support.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">group</span>:<span class="fn">AddSlider</span>({
-    <span class="key">Name</span>      <span class="kw">=</span> <span class="str">"FOV"</span>,
-    <span class="key">Min</span>       <span class="kw">=</span> <span class="num">10</span>,
-    <span class="key">Max</span>       <span class="kw">=</span> <span class="num">800</span>,
-    <span class="key">Default</span>   <span class="kw">=</span> <span class="num">120</span>,
-    <span class="key">Increment</span> <span class="kw">=</span> <span class="num">5</span>,
-    <span class="key">Callback</span>  <span class="kw">=</span> <span class="kw">function</span>(val)
-        <span class="cmt">-- val: number</span>
-    <span class="kw">end</span>
-})</pre>
-    </div>
-  </div>
+AddKeybind
+Keybind input with Toggle and Hold modes.
 
-  <!-- BUTTON -->
-  <div class="doc-section reveal" id="button">
-    <div class="section-header">
-      <div class="section-tag">element</div>
-      <h2>Button <a class="anchor" href="#button">#</a></h2>
-    </div>
-    <p>A clickable button that fires a callback immediately on press.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">group</span>:<span class="fn">AddButton</span>({
-    <span class="key">Name</span>     <span class="kw">=</span> <span class="str">"Rejoin Server"</span>,
-    <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>()
-        <span class="cmt">-- fires on click</span>
-    <span class="kw">end</span>
-})</pre>
-    </div>
-  </div>
+AddKeybindToggle
+Combined keybind and toggle in one row.
 
-  <!-- DROPDOWN -->
-  <div class="doc-section reveal" id="dropdown">
-    <div class="section-header">
-      <div class="section-tag">element</div>
-      <h2>Dropdown <a class="anchor" href="#dropdown">#</a></h2>
-    </div>
-    <p>A single-select dropdown list.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">group</span>:<span class="fn">AddDropdown</span>({
-    <span class="key">Name</span>     <span class="kw">=</span> <span class="str">"Target Part"</span>,
-    <span class="key">Options</span>  <span class="kw">=</span> { <span class="str">"Head"</span>, <span class="str">"HumanoidRootPart"</span>, <span class="str">"Torso"</span> },
-    <span class="key">Default</span>  <span class="kw">=</span> <span class="str">"Head"</span>,
-    <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(val)
-        <span class="cmt">-- val: string</span>
-    <span class="kw">end</span>
-})</pre>
-    </div>
-  </div>
+AddTextInput
+Single-line text input with placeholder and callbacks.
 
-  <!-- MULTIDROPDOWN -->
-  <div class="doc-section reveal" id="multidropdown">
-    <div class="section-header">
-      <div class="section-tag">element</div>
-      <h2>MultiDropdown <a class="anchor" href="#multidropdown">#</a></h2>
-    </div>
-    <p>A multi-select dropdown — callback receives a table of all selected values.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">group</span>:<span class="fn">AddMultiDropdown</span>({
-    <span class="key">Name</span>     <span class="kw">=</span> <span class="str">"Notifications"</span>,
-    <span class="key">Options</span>  <span class="kw">=</span> { <span class="str">"Kills"</span>, <span class="str">"Deaths"</span>, <span class="str">"Chat"</span>, <span class="str">"Joins"</span> },
-    <span class="key">Default</span>  <span class="kw">=</span> { <span class="str">"Kills"</span>, <span class="str">"Chat"</span> },
-    <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(val)
-        <span class="cmt">-- val: table of selected strings</span>
-    <span class="kw">end</span>
-})</pre>
-    </div>
-  </div>
+AddColorPicker
+HSV color picker with preset colors and live preview.
 
-  <!-- KEYBIND -->
-  <div class="doc-section reveal" id="keybind">
-    <div class="section-header">
-      <div class="section-tag">element</div>
-      <h2>Keybind <a class="anchor" href="#keybind">#</a></h2>
-    </div>
-    <p>A rebindable key. Callback fires every time the key is pressed.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">group</span>:<span class="fn">AddKeybind</span>({
-    <span class="key">Name</span>     <span class="kw">=</span> <span class="str">"Fly Key"</span>,
-    <span class="key">Default</span>  <span class="kw">=</span> <span class="prop">Enum.KeyCode.F</span>,
-    <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>()
-        <span class="cmt">-- fires on key press</span>
-    <span class="kw">end</span>
-})</pre>
-    </div>
-  </div>
+AddLabel / AddParagraph
+Text display with optional word wrapping.
 
-  <!-- KEYBINDTOGGLE -->
-  <div class="doc-section reveal" id="keybindtoggle">
-    <div class="section-header">
-      <div class="section-tag">element</div>
-      <h2>KeybindToggle <a class="anchor" href="#keybindtoggle">#</a></h2>
-    </div>
-    <p>Combines a keybind with a toggle state — each press flips the bool.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">group</span>:<span class="fn">AddKeybindToggle</span>({
-    <span class="key">Name</span>          <span class="kw">=</span> <span class="str">"Aimbot Hotkey"</span>,
-    <span class="key">Default</span>       <span class="kw">=</span> <span class="prop">Enum.KeyCode.E</span>,
-    <span class="key">ToggleDefault</span> <span class="kw">=</span> <span class="bool">false</span>,
-    <span class="key">Callback</span>      <span class="kw">=</span> <span class="kw">function</span>(val)
-        <span class="cmt">-- val: boolean (toggle state)</span>
-    <span class="kw">end</span>
-})</pre>
-    </div>
-  </div>
+AddDivider
+Horizontal separator line with gradient effect.
 
-  <!-- COLORPICKER -->
-  <div class="doc-section reveal" id="colorpicker">
-    <div class="section-header">
-      <div class="section-tag">element</div>
-      <h2>ColorPicker <a class="anchor" href="#colorpicker">#</a></h2>
-    </div>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">group</span>:<span class="fn">AddColorPicker</span>({
-    <span class="key">Name</span>     <span class="kw">=</span> <span class="str">"ESP Color"</span>,
-    <span class="key">Default</span>  <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">255</span>, <span class="num">0</span>, <span class="num">0</span>),
-    <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(val)
-        <span class="cmt">-- val: Color3</span>
-    <span class="kw">end</span>
-})</pre>
-    </div>
-  </div>
+AddSpacer
+Configurable vertical spacing between elements.
+Element Usage Examples
+lua-- Toggle
+group:AddToggle({
+    Name = "Enabled",
+    Default = false,
+    Flag = "aimbot_enabled",
+    Callback = function(value) print(value) end
+})
 
-  <!-- TEXTINPUT -->
-  <div class="doc-section reveal" id="textinput">
-    <div class="section-header">
-      <div class="section-tag">element</div>
-      <h2>TextInput <a class="anchor" href="#textinput">#</a></h2>
-    </div>
-    <p>A text field. Callback fires when the player presses Enter or unfocuses.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">group</span>:<span class="fn">AddTextInput</span>({
-    <span class="key">Name</span>            <span class="kw">=</span> <span class="str">"Webhook URL"</span>,
-    <span class="key">Default</span>         <span class="kw">=</span> <span class="str">""</span>,
-    <span class="key">PlaceholderText</span> <span class="kw">=</span> <span class="str">"https://..."</span>,
-    <span class="key">Callback</span>        <span class="kw">=</span> <span class="kw">function</span>(val)
-        <span class="cmt">-- val: string</span>
-    <span class="kw">end</span>
-})</pre>
-    </div>
-  </div>
+-- Slider
+group:AddSlider({
+    Name = "FOV",
+    Min = 10, Max = 800,
+    Default = 120, Increment = 5,
+    Suffix = "px",
+    Flag = "aimbot_fov",
+    Callback = function(value) print(value) end
+})
 
-  <!-- LABEL -->
-  <div class="doc-section reveal" id="label">
-    <div class="section-header">
-      <div class="section-tag">element</div>
-      <h2>Label <a class="anchor" href="#label">#</a></h2>
-    </div>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">group</span>:<span class="fn">AddLabel</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Visuals are client-side only."</span> })</pre>
-    </div>
-  </div>
+-- Dropdown
+group:AddDropdown({
+    Name = "Target",
+    Options = {"Head", "Torso", "HumanoidRootPart"},
+    Default = "Head",
+    Flag = "aimbot_target",
+    Callback = function(value) print(value) end
+})
 
-  <!-- DIVIDER -->
-  <div class="doc-section reveal" id="divider">
-    <div class="section-header">
-      <div class="section-tag">element</div>
-      <h2>Divider <a class="anchor" href="#divider">#</a></h2>
-    </div>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">group</span>:<span class="fn">AddDivider</span>()</pre>
-    </div>
-  </div>
+-- Multi Dropdown
+group:AddMultiDropdown({
+    Name = "ESP Types",
+    Options = {"Box", "Name", "Health", "Distance"},
+    Default = {"Box", "Name"},
+    Flag = "esp_types",
+    Callback = function(values) print(values) end
+})
 
-  <div class="section-divider"><span>LIBRARY METHODS</span></div>
+-- Color Picker
+group:AddColorPicker({
+    Name = "ESP Color",
+    Default = Color3.fromRGB(255, 0, 0),
+    Flag = "esp_color",
+    Callback = function(color) print(color) end
+})
 
-  <!-- NOTIFY -->
-  <div class="doc-section reveal" id="notify">
-    <div class="section-header">
-      <div class="section-tag">method</div>
-      <h2>Notify <a class="anchor" href="#notify">#</a></h2>
-    </div>
-    <p>Shows a toast notification in the corner of the screen.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">lib</span>:<span class="fn">Notify</span>({
-    <span class="key">Title</span>       <span class="kw">=</span> <span class="str">"VoidHub"</span>,
-    <span class="key">Description</span> <span class="kw">=</span> <span class="str">"Config saved!"</span>,
-    <span class="key">Duration</span>    <span class="kw">=</span> <span class="num">4</span>  <span class="cmt">-- seconds</span>
-})</pre>
-    </div>
-  </div>
+-- Keybind
+group:AddKeybind({
+    Name = "Toggle Key",
+    Default = Enum.KeyCode.E,
+    Mode = "Toggle",
+    Flag = "aimbot_key",
+    Callback = function() print("Pressed!") end,
+    ChangedCallback = function(key) print("New key:", key) end
+})
+Library Methods
+Method
+Description
+Usage
+atom_ui.new(config)
+Create a new UI window
+local lib = atom_ui.new({...})
+lib:Toggle()
+Toggle UI open/closed
+lib:Toggle()
+lib:Open()
+Open the UI
+lib:Open()
+lib:Close()
+Close the UI (shows toggle button)
+lib:Close()
+lib:Notify(config)
+Show notification
+lib:Notify({Title="Hi", Description="Hello", Duration=3})
+lib:SetAccentColor(color)
+Change theme color
+lib:SetAccentColor(Color3.fromRGB(255,0,0))
+lib:SetFontPreset(index)
+Cycle font preset
+lib:SetFontPreset(1)
+lib:SetSearchFilter(query)
+Filter tabs/groups
+lib:SetSearchFilter("aim")
+lib:SetWatermark(config)
+Add watermark
+lib:SetWatermark({Text="v1.0", Position="TopRight"})
+lib:SetWatermarkText(text)
+Update watermark
+lib:SetWatermarkText("v2.0")
+lib:SetESPPreview(enabled)
+Toggle ESP preview panel
+lib:SetESPPreview(true)
+lib:SaveConfig(name)
+Save settings to file
+lib:SaveConfig("main")
+lib:LoadConfig(name)
+Load settings from file
+lib:LoadConfig("main")
+lib:RefreshConfigs()
+List saved configs
+local list = lib:RefreshConfigs()
+lib:Destroy()
+Destroy UI and cleanup
+lib:Destroy()
+atom_ui.Demo()
+Run built-in demo
+atom_ui.Demo()
+Config System
+AtomUI has a built-in configuration system that automatically saves and restores element states using JSON files.
+How It Works
+Every element with a Flag property is automatically tracked. When AutoConfig is enabled, values are saved every 60 seconds and restored on load.
+lualocal lib = atom_ui.new({
+    Name = "My Script",
+    AutoConfig = true,           -- Enable auto save/load
+    ConfigFolder = "MyConfigs",  -- Custom folder name
+    ShowAutoSaveToggle = true    -- Show toggle in settings
+})
 
-  <!-- VISIBILITY -->
-  <div class="doc-section reveal" id="visibility">
-    <div class="section-header">
-      <div class="section-tag">method</div>
-      <h2>Visibility <a class="anchor" href="#visibility">#</a></h2>
-    </div>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">lib</span>:<span class="fn">Toggle</span>()                                    <span class="cmt">-- flip open/closed</span>
-<span class="prop">lib</span>:<span class="fn">SetToggleKey</span>(<span class="prop">Enum.KeyCode.RightControl</span>)  <span class="cmt">-- change hotkey</span>
-<span class="prop">lib</span>:<span class="fn">SetToggleVisible</span>(<span class="bool">true</span>)                      <span class="cmt">-- show/hide toggle button</span></pre>
-    </div>
-    <div class="callout info">
-      <div class="callout-icon">ℹ</div>
-      <p>Default toggle key is <strong>RightControl</strong>. Players can rebind it via the built-in settings tab.</p>
-    </div>
-  </div>
+-- Elements with Flag are auto-tracked
+group:AddToggle({
+    Name = "Silent Aim",
+    Flag = "silent_aim",  -- This value is saved
+    Default = false,
+    Callback = function(v) end
+})
 
-  <!-- THEMING -->
-  <div class="doc-section reveal" id="theming">
-    <div class="section-header">
-      <div class="section-tag">method</div>
-      <h2>Theming <a class="anchor" href="#theming">#</a></h2>
-    </div>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="cmt">-- Change accent color at runtime</span>
-<span class="prop">lib</span>:<span class="fn">SetAccentColor</span>(<span class="fn">Color3.fromRGB</span>(<span class="num">138</span>, <span class="num">43</span>, <span class="num">226</span>))
-
-<span class="cmt">-- Font preset (1–10)</span>
-<span class="cmt">-- 1=Gotham  2=Gotham Medium  3=Montserrat  4=Nunito</span>
-<span class="cmt">-- 5=Bodoni  6=Garamond  7=Source Sans  8=Highway  9=Antique  10=Code</span>
-<span class="prop">lib</span>:<span class="fn">SetFontPreset</span>(<span class="num">1</span>)</pre>
-    </div>
-  </div>
-
-  <!-- CONFIG -->
-  <div class="doc-section reveal" id="config">
-    <div class="section-header">
-      <div class="section-tag">method</div>
-      <h2>Config <a class="anchor" href="#config">#</a></h2>
-    </div>
-    <p>Saves and loads all control values to/from a file. When <code style="font-family:'JetBrains Mono',monospace;font-size:12px;color:var(--accent2)">AutoConfig = true</code> this happens automatically.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">lib</span>:<span class="fn">SaveConfig</span>(<span class="str">"voidhub_cfg"</span>)   <span class="cmt">-- writes to file</span>
-<span class="prop">lib</span>:<span class="fn">LoadConfig</span>(<span class="str">"voidhub_cfg"</span>)   <span class="cmt">-- reads from file</span></pre>
-    </div>
-  </div>
-
-  <!-- DESTROY -->
-  <div class="doc-section reveal" id="destroy">
-    <div class="section-header">
-      <div class="section-tag">method</div>
-      <h2>Destroy <a class="anchor" href="#destroy">#</a></h2>
-    </div>
-    <p>Removes all UI instances and disconnects every connection. Call this on script unload.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="prop">lib</span>:<span class="fn">Destroy</span>()</pre>
-    </div>
-  </div>
-
-  <div class="section-divider"><span>EXAMPLES</span></div>
-
-  <!-- FULL EXAMPLE -->
-  <div class="doc-section reveal" id="full-example">
-    <div class="section-header">
-      <div class="section-tag">example</div>
-      <h2>Full Script <a class="anchor" href="#full-example">#</a></h2>
-    </div>
-    <p>A complete VoidHub-style script showing all major features.</p>
-    <div class="code-block">
-      <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
-      <pre><span class="kw">local</span> <span class="prop">AtomUI</span> <span class="kw">=</span> <span class="fn">loadstring</span>(<span class="fn">game</span>:<span class="fn">HttpGet</span>(
-    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/main/AtomUI.lua"</span>
+-- Manual save/load
+lib:SaveConfig("legit")
+lib:LoadConfig("rage")
+Note
+The config system requires your executor to support writefile, readfile, isfolder, makefolder, and listfiles.
+Config API
+Method
+Description
+lib:SaveConfig(name)
+Save current values to ConfigFolder/name.json
+lib:LoadConfig(name)
+Load values from ConfigFolder/name.json
+lib:RefreshConfigs()
+Returns a table of saved config names
+Notifications
+AtomUI includes a built-in notification system with progress bars, icons, and smooth animations.
+lualib:Notify({
+    Title = "Success",
+    Description = "Settings saved successfully",
+    Duration = 3,                           -- Seconds (default: 3)
+    Icon = "rbxassetid://10747361219"       -- Optional custom icon
+})
+Property
+Type
+Required
+Description
+Title
+string
+Yes
+Notification title
+Description
+string
+No
+Body text
+Duration
+number
+No
+Display time in seconds
+Icon
+string
+No
+rbxassetid:// URL
+Rate Limiting
+Duplicate notifications within 0.85 seconds are automatically suppressed to prevent spam.
+Examples
+Full Script Template
+lualocal atom_ui = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"
 ))()
 
-<span class="kw">local</span> <span class="prop">lib</span> <span class="kw">=</span> <span class="prop">AtomUI</span>.<span class="fn">new</span>({
-    <span class="key">Name</span>        <span class="kw">=</span> <span class="str">"VoidHub"</span>,
-    <span class="key">AccentColor</span> <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">138</span>, <span class="num">43</span>, <span class="num">226</span>),
-    <span class="key">AutoConfig</span>  <span class="kw">=</span> <span class="bool">true</span>
+local lib = atom_ui.new({
+    Name = "Combat Suite",
+    AccentColor = Color3.fromRGB(255, 60, 60),
+    AutoConfig = true,
+    ConfigFolder = "CombatConfigs"
 })
 
-<span class="kw">local</span> <span class="prop">main</span> <span class="kw">=</span> <span class="prop">lib</span>:<span class="fn">AddSection</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Main"</span>, <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"sword"</span> })
+-- Sections
+local combat = lib:AddSection({Name = "Combat", Icon = "crosshair"})
+local visuals = lib:AddSection({Name = "Visuals", Icon = "eye"})
+local settings = lib:AddSection({Name = "Settings", Icon = "settings"})
 
-<span class="kw">local</span> <span class="prop">combat</span> <span class="kw">=</span> <span class="prop">main</span>:<span class="fn">AddTab</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Combat"</span>, <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"crosshair"</span> })
+-- Combat Tab
+local ctab = combat:AddTab({Name = "Aimbot", Description = "Aim assist", Icon = "target"})
+local aim = ctab:AddGroup({Name = "Main", Side = "Left", Icon = "target"})
 
-<span class="kw">local</span> <span class="prop">aimbot</span> <span class="kw">=</span> <span class="prop">combat</span>:<span class="fn">AddGroup</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Aimbot"</span>, <span class="key">Side</span> <span class="kw">=</span> <span class="str">"Left"</span>, <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"target"</span> })
-<span class="prop">aimbot</span>:<span class="fn">AddToggle</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Enabled"</span>, <span class="key">Default</span> <span class="kw">=</span> <span class="bool">false</span>, <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(v) <span class="kw">end</span> })
-<span class="prop">aimbot</span>:<span class="fn">AddSlider</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"FOV"</span>, <span class="key">Min</span> <span class="kw">=</span> <span class="num">10</span>, <span class="key">Max</span> <span class="kw">=</span> <span class="num">800</span>, <span class="key">Default</span> <span class="kw">=</span> <span class="num">120</span>, <span class="key">Increment</span> <span class="kw">=</span> <span class="num">5</span>, <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(v) <span class="kw">end</span> })
-<span class="prop">aimbot</span>:<span class="fn">AddDropdown</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Target"</span>, <span class="key">Options</span> <span class="kw">=</span> {<span class="str">"Head"</span>,<span class="str">"Torso"</span>}, <span class="key">Default</span> <span class="kw">=</span> <span class="str">"Head"</span>, <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(v) <span class="kw">end</span> })
-<span class="prop">aimbot</span>:<span class="fn">AddKeybindToggle</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Hotkey"</span>, <span class="key">Default</span> <span class="kw">=</span> <span class="prop">Enum.KeyCode.E</span>, <span class="key">ToggleDefault</span> <span class="kw">=</span> <span class="bool">false</span>, <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(v) <span class="kw">end</span> })
+aim:AddToggle({Name = "Silent Aim", Default = false, Flag = "silent", Callback = function(v) _G.Silent = v end})
+aim:AddToggle({Name = "Visible Check", Default = true, Flag = "visible", Callback = function(v) _G.VisibleCheck = v end})
+aim:AddSlider({Name = "FOV", Min = 10, Max = 500, Default = 150, Increment = 10, Flag = "fov", Callback = function(v) _G.FOV = v end})
+aim:AddDropdown({Name = "Hit Part", Options = {"Head","HumanoidRootPart","Torso"}, Default = "Head", Flag = "part", Callback = function(v) _G.Part = v end})
+aim:AddKeybind({Name = "Aim Key", Default = Enum.KeyCode.Q, Mode = "Hold", Flag = "aimkey", Callback = function(v) _G.Aiming = v end})
 
-<span class="kw">local</span> <span class="prop">visuals</span> <span class="kw">=</span> <span class="prop">combat</span>:<span class="fn">AddGroup</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Visuals"</span>, <span class="key">Side</span> <span class="kw">=</span> <span class="str">"Right"</span>, <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"eye"</span> })
-<span class="prop">visuals</span>:<span class="fn">AddToggle</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"ESP"</span>, <span class="key">Default</span> <span class="kw">=</span> <span class="bool">false</span>, <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(v) <span class="kw">end</span> })
-<span class="prop">visuals</span>:<span class="fn">AddColorPicker</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"ESP Color"</span>, <span class="key">Default</span> <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">255</span>,<span class="num">0</span>,<span class="num">0</span>), <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(v) <span class="kw">end</span> })
+-- Visuals Tab
+local vtab = visuals:AddTab({Name = "ESP", Description = "Player ESP", Icon = "eye"})
+local esp = vtab:AddGroup({Name = "ESP", Side = "Left", Icon = "eye"})
 
-<span class="kw">local</span> <span class="prop">player</span> <span class="kw">=</span> <span class="prop">main</span>:<span class="fn">AddTab</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Player"</span>, <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"user"</span> })
+esp:AddToggle({Name = "Box ESP", Default = true, Flag = "box", Callback = function(v) _G.BoxESP = v end})
+esp:AddToggle({Name = "Name ESP", Default = true, Flag = "name", Callback = function(v) _G.NameESP = v end})
+esp:AddToggle({Name = "Health ESP", Default = false, Flag = "health", Callback = function(v) _G.HealthESP = v end})
+esp:AddColorPicker({Name = "Team Color", Default = Color3.fromRGB(0, 255, 100), Flag = "teamcolor", Callback = function(c) _G.TeamColor = c end})
+esp:AddColorPicker({Name = "Enemy Color", Default = Color3.fromRGB(255, 50, 50), Flag = "enemycolor", Callback = function(c) _G.EnemyColor = c end})
 
-<span class="kw">local</span> <span class="prop">movement</span> <span class="kw">=</span> <span class="prop">player</span>:<span class="fn">AddGroup</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Movement"</span>, <span class="key">Side</span> <span class="kw">=</span> <span class="str">"Left"</span>, <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"move"</span> })
-<span class="prop">movement</span>:<span class="fn">AddToggle</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Speed Hack"</span>, <span class="key">Default</span> <span class="kw">=</span> <span class="bool">false</span>, <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(v) <span class="kw">end</span> })
-<span class="prop">movement</span>:<span class="fn">AddSlider</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Walk Speed"</span>, <span class="key">Min</span> <span class="kw">=</span> <span class="num">16</span>, <span class="key">Max</span> <span class="kw">=</span> <span class="num">200</span>, <span class="key">Default</span> <span class="kw">=</span> <span class="num">16</span>, <span class="key">Increment</span> <span class="kw">=</span> <span class="num">1</span>, <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(v) <span class="kw">end</span> })
-<span class="prop">movement</span>:<span class="fn">AddSlider</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Jump Power"</span>, <span class="key">Min</span> <span class="kw">=</span> <span class="num">50</span>, <span class="key">Max</span> <span class="kw">=</span> <span class="num">500</span>, <span class="key">Default</span> <span class="kw">=</span> <span class="num">50</span>, <span class="key">Increment</span> <span class="kw">=</span> <span class="num">5</span>, <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>(v) <span class="kw">end</span> })
+-- Settings Tab
+local stab = settings:AddTab({Name = "Config", Description = "Save/Load", Icon = "save"})
+local cfg = stab:AddGroup({Name = "Config", Side = "Left", Icon = "hard-drive"})
 
-<span class="kw">local</span> <span class="prop">cfg_sec</span> <span class="kw">=</span> <span class="prop">lib</span>:<span class="fn">AddSection</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Config"</span>, <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"settings"</span> })
-<span class="kw">local</span> <span class="prop">cfg_tab</span> <span class="kw">=</span> <span class="prop">cfg_sec</span>:<span class="fn">AddTab</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Settings"</span>, <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"save"</span> })
-<span class="kw">local</span> <span class="prop">cfg</span>     <span class="kw">=</span> <span class="prop">cfg_tab</span>:<span class="fn">AddGroup</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Config"</span>, <span class="key">Side</span> <span class="kw">=</span> <span class="str">"Left"</span>, <span class="key">Icon</span> <span class="kw">=</span> <span class="str">"hard-drive"</span> })
+cfg:AddButton({Name = "Save Legit", Callback = function()
+    lib:SaveConfig("legit")
+    lib:Notify({Title = "Config", Description = "Legit config saved!", Duration = 3})
+end})
 
-<span class="prop">cfg</span>:<span class="fn">AddButton</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Save"</span>, <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>()
-    <span class="prop">lib</span>:<span class="fn">SaveConfig</span>(<span class="str">"voidhub"</span>)
-    <span class="prop">lib</span>:<span class="fn">Notify</span>({ <span class="key">Title</span> <span class="kw">=</span> <span class="str">"Config"</span>, <span class="key">Description</span> <span class="kw">=</span> <span class="str">"Saved!"</span>, <span class="key">Duration</span> <span class="kw">=</span> <span class="num">3</span> })
-<span class="kw">end</span> })
+cfg:AddButton({Name = "Save Rage", Callback = function()
+    lib:SaveConfig("rage")
+    lib:Notify({Title = "Config", Description = "Rage config saved!", Duration = 3})
+end})
 
-<span class="prop">cfg</span>:<span class="fn">AddButton</span>({ <span class="key">Name</span> <span class="kw">=</span> <span class="str">"Load"</span>, <span class="key">Callback</span> <span class="kw">=</span> <span class="kw">function</span>()
-    <span class="prop">lib</span>:<span class="fn">LoadConfig</span>(<span class="str">"voidhub"</span>)
-    <span class="prop">lib</span>:<span class="fn">Notify</span>({ <span class="key">Title</span> <span class="kw">=</span> <span class="str">"Config"</span>, <span class="key">Description</span> <span class="kw">=</span> <span class="str">"Loaded!"</span>, <span class="key">Duration</span> <span class="kw">=</span> <span class="num">3</span> })
-<span class="kw">end</span> })
+cfg:AddButton({Name = "Load Legit", Callback = function()
+    lib:LoadConfig("legit")
+    lib:Notify({Title = "Config", Description = "Legit config loaded!", Duration = 3})
+end})
 
-<span class="prop">lib</span>:<span class="fn">Notify</span>({ <span class="key">Title</span> <span class="kw">=</span> <span class="str">"VoidHub"</span>, <span class="key">Description</span> <span class="kw">=</span> <span class="str">"Press RightCtrl to toggle."</span>, <span class="key">Duration</span> <span class="kw">=</span> <span class="num">5</span> })</pre>
-    </div>
-  </div>
+cfg:AddButton({Name = "Load Rage", Callback = function()
+    lib:LoadConfig("rage")
+    lib:Notify({Title = "Config", Description = "Rage config loaded!", Duration = 3})
+end})
 
-</main>
-</div>
+lib:Notify({Title = "Combat Suite", Description = "Loaded successfully!", Duration = 5})
+Demo
+Run the built-in demo to see all elements in action:
+lualocal atom_ui = loadstring(game:HttpGet(
+    "https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"
+))()
 
-<footer>
-  <div class="footer-logo">AtomUI</div>
-  <div class="footer-right">
-    Built by
-    <a href="https://github.com/VoidDeveloper67" target="_blank">vonplayz_real</a>
-    <span class="footer-sep">&amp;</span>
-    <a href="https://github.com/darkflareplays8" target="_blank">DarealBloxfruiter</a>
-    <span class="footer-sep">·</span>
-    VoidHub Project
-    <span class="footer-sep">·</span>
-    <a href="https://github.com/VoidDeveloper67/AtomUI" target="_blank">GitHub</a>
-  </div>
-</footer>
+-- Launch the demo UI
+atom_ui.Demo()
+Try It Out
+The demo creates a complete UI with toggles, sliders, dropdowns, keybinds, color pickers, and more. Press RightCtrl to toggle the UI.
 
-<script>
-  function copyHero() {
-    const text = document.getElementById('hero-code').innerText;
-    navigator.clipboard.writeText(text).then(() => {
-      const btn = document.getElementById('hero-copy');
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-    });
-  }
-
-  function copyBlock(btn) {
-    const pre = btn.closest('.code-block').querySelector('pre');
-    navigator.clipboard.writeText(pre.innerText).then(() => {
-      btn.textContent = 'Copied!';
-      btn.classList.add('copied');
-      setTimeout(() => { btn.textContent = 'Copy'; btn.classList.remove('copied'); }, 2000);
-    });
-  }
-
-  const revealObserver = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        e.target.classList.add('visible');
-        revealObserver.unobserve(e.target);
-      }
-    });
-  }, { threshold: 0.08 });
-
-  document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
-
-  const sections = document.querySelectorAll('.doc-section[id]');
-  const navLinks = document.querySelectorAll('.nav-link');
-
-  const navObserver = new IntersectionObserver((entries) => {
-    entries.forEach(e => {
-      if (e.isIntersecting) {
-        navLinks.forEach(l => l.classList.remove('active'));
-        const active = document.querySelector(`.nav-link[href="#${e.target.id}"]`);
-        if (active) {
-          active.classList.add('active');
-          active.scrollIntoView({ block: 'nearest' });
-        }
-      }
-    });
-  }, { rootMargin: '-20% 0px -70% 0px' });
-
-  sections.forEach(s => navObserver.observe(s));
-
-  let dragging = false, startX, startY, origX, origY;
-  const header = document.querySelector('header');
-
-  header.addEventListener('mousedown', e => {
-    if (e.target.closest('a, button')) return;
-    dragging = true;
-    startX = e.clientX; startY = e.clientY;
-    origX = 0; origY = 0;
-    document.body.style.userSelect = 'none';
-  });
-
-  document.addEventListener('mousemove', e => {
-    if (!dragging) return;
-    const dx = e.clientX - startX;
-    const dy = e.clientY - startY;
-    header.style.transform = `translateX(${dx * 0.04}px) translateY(${dy * 0.04}px)`;
-  });
-
-  document.addEventListener('mouseup', () => {
-    if (!dragging) return;
-    dragging = false;
-    header.style.transition = 'transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1)';
-    header.style.transform = '';
-    document.body.style.userSelect = '';
-    setTimeout(() => { header.style.transition = ''; }, 500);
-  });
-</script>
-
-</body>
-</html>
