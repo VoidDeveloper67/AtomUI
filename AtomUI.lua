@@ -795,6 +795,9 @@ function atom_ui.new(config)
     self.config.SecondaryColor = self.config.SecondaryColor or Color3.fromRGB(18, 18, 18)
     self.config.TextColor = self.config.TextColor or Color3.fromRGB(255, 255, 255)
     self.config.SubTextColor = self.config.SubTextColor or Color3.fromRGB(124, 124, 124)
+    self.config.CustomBackground = self.config.CustomBackground or false
+    self.config.BackgroundImage = self.config.BackgroundImage or ""
+    self.config.BackgroundTransparency = self.config.BackgroundTransparency or 0.35
     
     self.sections = {}
     self.all_tabs = {}
@@ -1421,6 +1424,61 @@ function atom_ui:_AnimateTextGradients(dt)
     end
 end
 
+function atom_ui:_SetCustomBackgroundEnabled(enabled, imageId)
+    local useBg = enabled == true
+    if self.bg_image_frame then
+        self.bg_image_frame.Visible = useBg
+    end
+    if useBg and self.bg_image_label then
+        local img = type(imageId) == "string" and imageId or self.config.BackgroundImage or ""
+        if img ~= "" then
+            self.bg_image_label.Image = img
+        end
+        self.bg_image_label.ImageTransparency = self.config.BackgroundTransparency or 0.35
+    end
+    if self.bg_image_overlay then
+        self.bg_image_overlay.BackgroundTransparency = self.config.BackgroundTransparency or 0.45
+    end
+end
+
+function atom_ui:SetCustomBackground(imageId, transparency)
+    self.config.CustomBackground = true
+    self.config.BackgroundImage = type(imageId) == "string" and imageId or self.config.BackgroundImage or ""
+    if type(transparency) == "number" then
+        self.config.BackgroundTransparency = math.clamp(transparency, 0, 1)
+    end
+    self:_SetCustomBackgroundEnabled(true, self.config.BackgroundImage)
+end
+
+function atom_ui:ClearCustomBackground()
+    self.config.CustomBackground = false
+    self.config.BackgroundImage = ""
+    self:_SetCustomBackgroundEnabled(false)
+end
+
+function atom_ui:SetBackgroundImage(imageId)
+    if type(imageId) == "string" and imageId ~= "" then
+        self.config.BackgroundImage = imageId
+        self.config.CustomBackground = true
+        if self.bg_image_label then
+            self.bg_image_label.Image = imageId
+        end
+        if self.bg_image_frame then
+            self.bg_image_frame.Visible = true
+        end
+    end
+end
+
+function atom_ui:SetBackgroundTransparency(transparency)
+    self.config.BackgroundTransparency = math.clamp(tonumber(transparency) or 0.35, 0, 1)
+    if self.bg_image_label then
+        self.bg_image_label.ImageTransparency = self.config.BackgroundTransparency
+    end
+    if self.bg_image_overlay then
+        self.bg_image_overlay.BackgroundTransparency = self.config.BackgroundTransparency
+    end
+end
+
 function atom_ui:SetFontPreset(index)
     if #self._fontPresets == 0 then
         return
@@ -1479,6 +1537,17 @@ function atom_ui:_RefreshAccentCore()
     end
     if self.settings_btn_stroke then
         self.settings_btn_stroke.Color = self.settings_open and accent:Lerp(Color3.fromRGB(20, 20, 20), 0.45) or Color3.fromRGB(45, 45, 45)
+    end
+    if self.floating_toggle then
+        self.floating_toggle.ImageColor3 = accent
+    end
+    if self.floating_toggle_glow then
+        self.floating_toggle_glow.ImageColor3 = accent
+    end
+    -- Update toggle button glow too
+    local toggleGlow = self.toggle_frame and self.toggle_frame:FindFirstChild("ToggleGlow")
+    if toggleGlow then
+        toggleGlow.ImageColor3 = accent
     end
     if self.active_tab and self.active_tab.button_frame then
         self.active_tab.button_frame.BackgroundColor3 = accent
@@ -3119,6 +3188,11 @@ function atom_ui:SaveConfig(fileName)
     local payload = {
         version = 1,
         ui = self.config.Name,
+        background = {
+            CustomBackground = self.config.CustomBackground,
+            BackgroundImage = self.config.BackgroundImage,
+            BackgroundTransparency = self.config.BackgroundTransparency
+        },
         controls = {}
     }
     
@@ -3229,6 +3303,19 @@ function atom_ui:LoadConfig(fileName)
         end
     end
 
+    if type(data.background) == "table" then
+        if data.background.CustomBackground ~= nil then
+            self.config.CustomBackground = data.background.CustomBackground == true
+        end
+        if type(data.background.BackgroundImage) == "string" then
+            self.config.BackgroundImage = data.background.BackgroundImage
+        end
+        if type(data.background.BackgroundTransparency) == "number" then
+            self.config.BackgroundTransparency = math.clamp(data.background.BackgroundTransparency, 0, 1)
+        end
+        self:_SetCustomBackgroundEnabled(self.config.CustomBackground, self.config.BackgroundImage)
+    end
+
     return true, path
 end
 
@@ -3290,10 +3377,19 @@ function atom_ui:BuildUI()
     end
     self:BuildNotificationHolder()
     self:BuildToggleButton()
+    -- Set initial toggle icon state based on visibility
+    if self.toggle_icon then
+        if self.is_visible then
+            self.toggle_icon.ImageColor3 = self.config.AccentColor
+        else
+            self.toggle_icon.ImageColor3 = Color3.new(1, 1, 1)
+        end
+    end
     self:SetFontPreset(self._fontPresetIndex)
     self:_SetTextGradientEnabled(self._uiVisualSettings.TextGradient)
     self:_SetBackgroundEffectsEnabled(self._uiVisualSettings.BackgroundEffects)
     self:_SetOverlayMode(self._overlayMode)
+    self:_SetCustomBackgroundEnabled(self.config.CustomBackground, self.config.BackgroundImage)
     self:_ApplyOpenCloseVisuals(true)
     
     self:_TrackConnection(input_service.InputBegan:Connect(function(input, gameProcessed)
@@ -3565,16 +3661,41 @@ function atom_ui:Toggle()
     self.is_visible = not self.is_visible
     local openPosition = self._mainFrameOpenPosition or UDim2.new(0.5, -392 * scale_factor, 0.5, -262 * scale_factor)
     local closedPosition = self._mainFrameClosedPosition or UDim2.new(0.5, openPosition.X.Offset, 1.5, 0)
+
     if self.is_visible then
-        tween_to(self.main_frame, {Position = openPosition}, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
-        tween_to(self.backdrop_frame, {BackgroundTransparency = 0.35}, 0.45)
+        -- OPEN: smooth scale-up + slide in
+        self.main_frame.Visible = true
+        tween_to(self.main_frame, {Position = openPosition}, 0.45, Enum.EasingStyle.Quint, Enum.EasingDirection.Out)
+        if self.backdrop_dim then
+            tween_to(self.backdrop_dim, {BackgroundTransparency = 0.55}, 0.45)
+        end
         if self.blur then self.blur.Enabled = true end
-        if self.floating_toggle then self.floating_toggle.Visible = false end
+        if self.floating_toggle then
+            tween_to(self.floating_toggle, {ImageTransparency = 1}, 0.2)
+            task.delay(0.25, function()
+                if self.floating_toggle then self.floating_toggle.Visible = false end
+            end)
+        end
+        -- Pulse the toggle icon to show "active" state
+        if self.toggle_icon then
+            tween_to(self.toggle_icon, {ImageColor3 = self.config.AccentColor}, 0.3)
+        end
     else
+        -- CLOSE: slide down + fade
         tween_to(self.main_frame, {Position = closedPosition}, 0.4, Enum.EasingStyle.Quint, Enum.EasingDirection.In)
-        tween_to(self.backdrop_frame, {BackgroundTransparency = 1}, 0.35)
+        if self.backdrop_dim then
+            tween_to(self.backdrop_dim, {BackgroundTransparency = 1}, 0.35)
+        end
         if self.blur then self.blur.Enabled = false end
-        if self.floating_toggle then self.floating_toggle.Visible = true end
+        if self.floating_toggle then
+            self.floating_toggle.Visible = true
+            self.floating_toggle.ImageTransparency = 1
+            tween_to(self.floating_toggle, {ImageTransparency = 0}, 0.3)
+        end
+        -- Reset toggle icon color
+        if self.toggle_icon then
+            tween_to(self.toggle_icon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.3)
+        end
     end
     self:_ApplyOpenCloseVisuals(false)
 end
@@ -3604,22 +3725,36 @@ function atom_ui:BuildToggleButton()
     })
 
     create("UIGradient", {
-        Rotation = 50,
+        Rotation = 135,
         Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0,        Color3.fromRGB(164, 157, 255)),
-            ColorSequenceKeypoint.new(0.515913, Color3.fromRGB(30, 27, 38)),
-            ColorSequenceKeypoint.new(1,        Color3.fromRGB(164, 157, 255)),
+            ColorSequenceKeypoint.new(0,  Color3.fromRGB(120, 100, 255)),
+            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(80, 60, 220)),
+            ColorSequenceKeypoint.new(1,  Color3.fromRGB(160, 140, 255)),
         }),
         Parent = self.toggle_frame
     })
     create("UICorner", {CornerRadius = UDim.new(0, 15), Parent = self.toggle_frame})
 
+    -- Subtle outer glow
+    local toggle_glow = create("ImageLabel", {
+        Name = "ToggleGlow",
+        BackgroundTransparency = 1,
+        Image = "rbxassetid://5028857084",
+        ImageColor3 = Color3.fromRGB(140, 120, 255),
+        ImageTransparency = 0.82,
+        Size = UDim2.new(1.6, 0, 1.6, 0),
+        Position = UDim2.new(0.5, 0, 0.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        ZIndex = 0,
+        Parent = self.toggle_frame
+    })
+
     local toggle_stroke = create("UIStroke", {Color = Color3.new(1, 1, 1), Thickness = 2, Parent = self.toggle_frame})
     create("UIGradient", {
         Rotation = 90,
         Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(73, 106, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(35, 35, 35)),
+            ColorSequenceKeypoint.new(0, Color3.fromRGB(140, 120, 255)),
+            ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 80, 240)),
         }),
         Parent = toggle_stroke
     })
@@ -3631,7 +3766,7 @@ function atom_ui:BuildToggleButton()
         ImageColor3 = Color3.new(1, 1, 1),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        Size = UDim2.new(0, btn_size * 0.64, 0, btn_size * 0.64),
+        Size = UDim2.new(0, btn_size * 0.58, 0, btn_size * 0.58),
         Parent = self.toggle_frame
     })
 
@@ -3645,10 +3780,20 @@ function atom_ui:BuildToggleButton()
 
     toggle_btn.MouseButton1Click:Connect(function()
         self:Toggle()
-        tween_to(self.toggle_icon, {Size = UDim2.new(0, btn_size * 0.5, 0, btn_size * 0.5)}, 0.1)
-        task.delay(0.1, function()
-            tween_to(self.toggle_icon, {Size = UDim2.new(0, btn_size * 0.64, 0, btn_size * 0.64)}, 0.18, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
+        tween_to(self.toggle_icon, {Size = UDim2.new(0, btn_size * 0.46, 0, btn_size * 0.46)}, 0.08)
+        task.delay(0.08, function()
+            tween_to(self.toggle_icon, {Size = UDim2.new(0, btn_size * 0.58, 0, btn_size * 0.58)}, 0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
         end)
+    end)
+
+    -- Hover effects for toggle button
+    toggle_btn.MouseEnter:Connect(function()
+        tween_to(self.toggle_frame, {Size = UDim2.new(0, btn_size + 4, 0, btn_size + 4)}, 0.18)
+        tween_to(toggle_stroke, {Thickness = 3}, 0.18)
+    end)
+    toggle_btn.MouseLeave:Connect(function()
+        tween_to(self.toggle_frame, {Size = UDim2.new(0, btn_size, 0, btn_size)}, 0.18)
+        tween_to(toggle_stroke, {Thickness = 2}, 0.18)
     end)
 
     local dragging_t, drag_start_t, start_pos_t = false
@@ -3679,6 +3824,7 @@ function atom_ui:BuildToggleButton()
             update_drag_t(input)
         end
     end))
+    make_draggable(self.toggle_frame, toggle_btn, self)
 end
 
 function atom_ui:BuildWatermark()
@@ -3895,6 +4041,35 @@ function atom_ui:BuildMainFrame()
         ZIndex = 0,
         Parent = self.bg_effects_frame
     })
+
+    -- Custom Background Image Layer
+    self.bg_image_frame = create("Frame", {
+        Name = "CustomBackgroundImage",
+        BackgroundTransparency = 1,
+        Size = UDim2.new(1, 0, 1, 0),
+        ClipsDescendants = true,
+        ZIndex = 0,
+        Visible = false,
+        Parent = self.main_frame
+    })
+    self.bg_image_label = create("ImageLabel", {
+        Name = "BackgroundImage",
+        BackgroundTransparency = 1,
+        Image = "",
+        ImageTransparency = 0.35,
+        Size = UDim2.new(1, 0, 1, 0),
+        ScaleType = Enum.ScaleType.Crop,
+        ZIndex = 0,
+        Parent = self.bg_image_frame
+    })
+    self.bg_image_overlay = create("Frame", {
+        Name = "BackgroundImageOverlay",
+        BackgroundColor3 = Color3.fromRGB(0, 0, 0),
+        BackgroundTransparency = 0.45,
+        Size = UDim2.new(1, 0, 1, 0),
+        ZIndex = 1,
+        Parent = self.bg_image_frame
+    })
     
     self.drag_bar = create("Frame", {
         BackgroundTransparency = 1, Position = UDim2.new(0, 0, 0, 0),
@@ -4094,8 +4269,8 @@ function atom_ui:BuildMainFrame()
     })
     minimize_click.MouseButton1Click:Connect(function() self:Toggle() end)
     minimize_click.MouseEnter:Connect(function()
-        tween_to(self.minimize_btn, {BackgroundColor3 = Color3.fromRGB(40, 40, 40)}, 0.15)
-        tween_to(self.minimize_btn:FindFirstChildOfClass("ImageLabel"), {ImageColor3 = Color3.fromRGB(160, 60, 60)}, 0.15)
+        tween_to(self.minimize_btn, {BackgroundColor3 = Color3.fromRGB(55, 35, 35)}, 0.15)
+        tween_to(self.minimize_btn:FindFirstChildOfClass("ImageLabel"), {ImageColor3 = Color3.fromRGB(255, 80, 80)}, 0.15)
     end)
     minimize_click.MouseLeave:Connect(function()
         tween_to(self.minimize_btn, {BackgroundColor3 = Color3.fromRGB(22, 22, 22)}, 0.15)
@@ -4339,6 +4514,10 @@ function atom_ui:BuildMainFrame()
     local hideNameToggleRef = createSettingsToggle("Hide Name", self._uiVisualSettings.HideName, function(enabled)
         self:_SetNameHidden(enabled)
     end)
+    local customBgToggleRef = createSettingsToggle("Custom BG", self.config.CustomBackground, function(enabled)
+        self.config.CustomBackground = enabled
+        self:_SetCustomBackgroundEnabled(enabled)
+    end)
     local autoSaveToggleRef = nil
     if self.config.ShowAutoSaveToggle ~= false then
         autoSaveToggleRef = createSettingsToggle("Auto Save Config", self._autoConfigEnabled, function(enabled)
@@ -4353,7 +4532,7 @@ function atom_ui:BuildMainFrame()
         end)
     end
 
-    self.settings_toggle_refs = {blurToggleRef, overlayToggleRef, bgFxToggleRef, gradientToggleRef, espPreviewToggleRef, hideNameToggleRef}
+    self.settings_toggle_refs = {blurToggleRef, overlayToggleRef, bgFxToggleRef, gradientToggleRef, espPreviewToggleRef, hideNameToggleRef, customBgToggleRef}
     if autoSaveToggleRef then
         table.insert(self.settings_toggle_refs, autoSaveToggleRef)
     end
@@ -4720,11 +4899,13 @@ function atom_ui:BuildMainFrame()
         end
     end)
     -- Sleek floating toggle button (appears when UI is closed)
-    self.floating_toggle = create("Frame", {
+    self.floating_toggle = create("ImageLabel", {
         Name = "AtomFloatingToggle",
+        Image = atomic_logo,
+        ImageColor3 = self.config.AccentColor,
         BackgroundTransparency = 1,
-        Position = UDim2.new(0, 10, 0, 10),
-        Size = UDim2.new(0, 34 * scale_factor, 0, 34 * scale_factor),
+        Position = UDim2.new(0, 14, 0, 14),
+        Size = UDim2.new(0, 38 * scale_factor, 0, 38 * scale_factor),
         AnchorPoint = Vector2.new(0, 0),
         ZIndex = 99999,
         Parent = self.screen_gui,
@@ -4732,21 +4913,25 @@ function atom_ui:BuildMainFrame()
         Active = true
     })
 
-    local ft_icon = create("ImageLabel", {
-        Image = default_icons.section,
+    -- Glow effect behind floating toggle
+    self.floating_toggle_glow = create("ImageLabel", {
+        Name = "AtomFloatingToggleGlow",
+        Image = "rbxassetid://5028857084",
         ImageColor3 = self.config.AccentColor,
+        ImageTransparency = 0.75,
         BackgroundTransparency = 1,
-        AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        Size = UDim2.new(1, 0, 1, 0),
-        ZIndex = 99999,
+        Size = UDim2.new(2.5, 0, 2.5, 0),
+        AnchorPoint = Vector2.new(0.5, 0.5),
+        ZIndex = 99998,
         Parent = self.floating_toggle
     })
 
     local ft_click = create("TextButton", {
         Text = "",
         BackgroundTransparency = 1,
-        Size = UDim2.new(1, 0, 1, 0),
+        Size = UDim2.new(1.4, 0, 1.4, 0),
+        Position = UDim2.new(-0.2, 0, -0.2, 0),
         ZIndex = 99999,
         Parent = self.floating_toggle
     })
@@ -4755,10 +4940,12 @@ function atom_ui:BuildMainFrame()
         self:Toggle()
     end)
     ft_click.MouseEnter:Connect(function()
-        tween_to(ft_icon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.15)
+        tween_to(self.floating_toggle, {ImageColor3 = Color3.new(1, 1, 1)}, 0.15)
+        tween_to(self.floating_toggle_glow, {ImageTransparency = 0.5}, 0.2)
     end)
     ft_click.MouseLeave:Connect(function()
-        tween_to(ft_icon, {ImageColor3 = self.config.AccentColor}, 0.15)
+        tween_to(self.floating_toggle, {ImageColor3 = self.config.AccentColor}, 0.15)
+        tween_to(self.floating_toggle_glow, {ImageTransparency = 0.75}, 0.2)
     end)
 end
 
