@@ -1541,14 +1541,6 @@ function atom_ui:_RefreshAccentCore()
     if self.floating_toggle then
         self.floating_toggle.ImageColor3 = accent
     end
-    if self.floating_toggle_glow then
-        self.floating_toggle_glow.ImageColor3 = accent
-    end
-    -- Update toggle button glow too
-    local toggleGlow = self.toggle_frame and self.toggle_frame:FindFirstChild("ToggleGlow")
-    if toggleGlow then
-        toggleGlow.ImageColor3 = accent
-    end
     if self.active_tab and self.active_tab.button_frame then
         self.active_tab.button_frame.BackgroundColor3 = accent
     end
@@ -3716,57 +3708,29 @@ function atom_ui:BuildToggleButton()
 
     self.toggle_frame = create("Frame", {
         Name = "ToggleButton",
-        BackgroundColor3 = Color3.new(1, 1, 1),
+        BackgroundColor3 = self.config.SecondaryColor or Color3.fromRGB(18, 18, 18),
         AnchorPoint = Vector2.new(0, 0.5),
         Position = UDim2.new(0, 8, 0.5, 0),
         BorderSizePixel = 0,
         Size = UDim2.new(0, btn_size, 0, btn_size),
         Parent = self.screen_gui
     })
+    create("UICorner", {CornerRadius = UDim.new(0, 14), Parent = self.toggle_frame})
 
-    create("UIGradient", {
-        Rotation = 135,
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0,  Color3.fromRGB(120, 100, 255)),
-            ColorSequenceKeypoint.new(0.5, Color3.fromRGB(80, 60, 220)),
-            ColorSequenceKeypoint.new(1,  Color3.fromRGB(160, 140, 255)),
-        }),
+    create("UIStroke", {
+        Color = Color3.fromRGB(45, 45, 45),
+        Thickness = 2,
         Parent = self.toggle_frame
-    })
-    create("UICorner", {CornerRadius = UDim.new(0, 15), Parent = self.toggle_frame})
-
-    -- Subtle outer glow
-    local toggle_glow = create("ImageLabel", {
-        Name = "ToggleGlow",
-        BackgroundTransparency = 1,
-        Image = "rbxassetid://5028857084",
-        ImageColor3 = Color3.fromRGB(140, 120, 255),
-        ImageTransparency = 0.82,
-        Size = UDim2.new(1.6, 0, 1.6, 0),
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        ZIndex = 0,
-        Parent = self.toggle_frame
-    })
-
-    local toggle_stroke = create("UIStroke", {Color = Color3.new(1, 1, 1), Thickness = 2, Parent = self.toggle_frame})
-    create("UIGradient", {
-        Rotation = 90,
-        Color = ColorSequence.new({
-            ColorSequenceKeypoint.new(0, Color3.fromRGB(140, 120, 255)),
-            ColorSequenceKeypoint.new(1, Color3.fromRGB(100, 80, 240)),
-        }),
-        Parent = toggle_stroke
     })
 
     self.toggle_icon = create("ImageLabel", {
         Name = "ToggleIcon",
         BackgroundTransparency = 1,
         Image = atomic_logo,
-        ImageColor3 = Color3.new(1, 1, 1),
+        ImageColor3 = self.config.AccentColor or Color3.fromRGB(2, 133, 255),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
-        Size = UDim2.new(0, btn_size * 0.58, 0, btn_size * 0.58),
+        Size = UDim2.new(0, btn_size * 0.55, 0, btn_size * 0.55),
         Parent = self.toggle_frame
     })
 
@@ -3780,50 +3744,8 @@ function atom_ui:BuildToggleButton()
 
     toggle_btn.MouseButton1Click:Connect(function()
         self:Toggle()
-        tween_to(self.toggle_icon, {Size = UDim2.new(0, btn_size * 0.46, 0, btn_size * 0.46)}, 0.08)
-        task.delay(0.08, function()
-            tween_to(self.toggle_icon, {Size = UDim2.new(0, btn_size * 0.58, 0, btn_size * 0.58)}, 0.22, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
-        end)
     end)
 
-    -- Hover effects for toggle button
-    toggle_btn.MouseEnter:Connect(function()
-        tween_to(self.toggle_frame, {Size = UDim2.new(0, btn_size + 4, 0, btn_size + 4)}, 0.18)
-        tween_to(toggle_stroke, {Thickness = 3}, 0.18)
-    end)
-    toggle_btn.MouseLeave:Connect(function()
-        tween_to(self.toggle_frame, {Size = UDim2.new(0, btn_size, 0, btn_size)}, 0.18)
-        tween_to(toggle_stroke, {Thickness = 2}, 0.18)
-    end)
-
-    local dragging_t, drag_start_t, start_pos_t = false
-    local function update_drag_t(input)
-        if not drag_start_t or not start_pos_t then return end
-        local delta = input.Position - drag_start_t
-        self.toggle_frame.Position = UDim2.new(
-            start_pos_t.X.Scale, start_pos_t.X.Offset + delta.X,
-            start_pos_t.Y.Scale, start_pos_t.Y.Offset + delta.Y
-        )
-    end
-    toggle_btn.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
-            dragging_t = true
-            drag_start_t = input.Position
-            start_pos_t = self.toggle_frame.Position
-            local conn
-            conn = input.Changed:Connect(function()
-                if input.UserInputState == Enum.UserInputState.End then
-                    dragging_t = false
-                    conn:Disconnect()
-                end
-            end)
-        end
-    end)
-    self:_TrackConnection(input_service.InputChanged:Connect(function(input)
-        if dragging_t and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
-            update_drag_t(input)
-        end
-    end))
     make_draggable(self.toggle_frame, toggle_btn, self)
 end
 
@@ -4913,20 +4835,6 @@ function atom_ui:BuildMainFrame()
         Active = true
     })
 
-    -- Glow effect behind floating toggle
-    self.floating_toggle_glow = create("ImageLabel", {
-        Name = "AtomFloatingToggleGlow",
-        Image = "rbxassetid://5028857084",
-        ImageColor3 = self.config.AccentColor,
-        ImageTransparency = 0.75,
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        Size = UDim2.new(2.5, 0, 2.5, 0),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        ZIndex = 99998,
-        Parent = self.floating_toggle
-    })
-
     local ft_click = create("TextButton", {
         Text = "",
         BackgroundTransparency = 1,
@@ -4941,11 +4849,9 @@ function atom_ui:BuildMainFrame()
     end)
     ft_click.MouseEnter:Connect(function()
         tween_to(self.floating_toggle, {ImageColor3 = Color3.new(1, 1, 1)}, 0.15)
-        tween_to(self.floating_toggle_glow, {ImageTransparency = 0.5}, 0.2)
     end)
     ft_click.MouseLeave:Connect(function()
         tween_to(self.floating_toggle, {ImageColor3 = self.config.AccentColor}, 0.15)
-        tween_to(self.floating_toggle_glow, {ImageTransparency = 0.75}, 0.2)
     end)
 end
 
