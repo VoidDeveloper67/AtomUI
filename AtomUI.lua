@@ -7056,6 +7056,266 @@ function atom_ui:AddSection(config)
                 return multiDropdownObj
             end
 
+            function groupObj:AddProgressBar(progressConfig)
+                progressConfig = progressConfig or {}
+                progressConfig.Name = progressConfig.Name or "Progress"
+                progressConfig.Value = math.clamp(tonumber(progressConfig.Value) or 0, 0, 1)
+                progressConfig.Color = progressConfig.Color
+                progressConfig.ShowPercent = progressConfig.ShowPercent ~= false
+                addSearchTerm(progressConfig.Name)
+
+                local progressObj = {}
+                progressObj.value = progressConfig.Value
+                local yPosition = groupObj.element_y
+                local barHeight = 10 * scale_factor
+                local barColor = progressConfig.Color or groupObj.Library.config.AccentColor
+
+                progressObj.labelText = create("TextLabel", {
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                    TextColor3 = Color3.fromRGB(124, 124, 124), Text = progressConfig.Name, BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 10, 0, yPosition), TextSize = 14 * scale_factor,
+                    Size = UDim2.new(0, 160 * scale_factor, 0, 18 * scale_factor),
+                    TextXAlignment = Enum.TextXAlignment.Left, Parent = groupObj.mainFrame
+                })
+
+                if progressConfig.ShowPercent then
+                    progressObj.percentLabel = create("TextLabel", {
+                        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                        TextColor3 = Color3.fromRGB(90, 90, 90),
+                        Text = math.floor(progressConfig.Value * 100) .. "%",
+                        BackgroundTransparency = 1,
+                        Position = UDim2.new(1, -40 * scale_factor, 0, yPosition),
+                        TextSize = 12.5 * scale_factor,
+                        Size = UDim2.new(0, 36 * scale_factor, 0, 18 * scale_factor),
+                        TextXAlignment = Enum.TextXAlignment.Right, Parent = groupObj.mainFrame
+                    })
+                end
+
+                progressObj.trackFrame = create("Frame", {
+                    BackgroundColor3 = Color3.fromRGB(32, 32, 32),
+                    Position = UDim2.new(0, 10, 0, yPosition + 22 * scale_factor),
+                    Size = UDim2.new(1, -20 * scale_factor, 0, barHeight),
+                    Parent = groupObj.mainFrame
+                })
+                create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = progressObj.trackFrame})
+
+                progressObj.fillFrame = create("Frame", {
+                    BackgroundColor3 = barColor,
+                    Size = UDim2.new(progressObj.value, 0, 1, 0),
+                    Parent = progressObj.trackFrame
+                })
+                create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = progressObj.fillFrame})
+
+                function progressObj:Set(value, animate)
+                    progressObj.value = math.clamp(tonumber(value) or 0, 0, 1)
+                    if animate ~= false then
+                        tween_to(progressObj.fillFrame, {Size = UDim2.new(progressObj.value, 0, 1, 0)}, 0.3)
+                    else
+                        progressObj.fillFrame.Size = UDim2.new(progressObj.value, 0, 1, 0)
+                    end
+                    if progressObj.percentLabel then
+                        progressObj.percentLabel.Text = math.floor(progressObj.value * 100) .. "%"
+                    end
+                end
+
+                function progressObj:Get()
+                    return progressObj.value
+                end
+
+                function progressObj:SetColor(color)
+                    tween_to(progressObj.fillFrame, {BackgroundColor3 = color}, 0.2)
+                end
+
+                groupObj.element_y = groupObj.element_y + 40 * scale_factor
+                update_group_size()
+                table.insert(groupObj.elements, progressObj)
+                return progressObj
+            end
+
+            function groupObj:AddNumberInput(numberInputConfig)
+                numberInputConfig = numberInputConfig or {}
+                numberInputConfig.Name = numberInputConfig.Name or "Number"
+                numberInputConfig.Min = tonumber(numberInputConfig.Min)
+                numberInputConfig.Max = tonumber(numberInputConfig.Max)
+                local rawDefault = tonumber(numberInputConfig.Default) or 0
+                numberInputConfig.Default = rawDefault
+                numberInputConfig.Step = math.abs(tonumber(numberInputConfig.Step) or 1)
+                numberInputConfig.Callback = numberInputConfig.Callback or function() end
+                numberInputConfig.Flag = numberInputConfig.Flag or createAutoFlag(numberInputConfig.Name)
+                addSearchTerm(numberInputConfig.Name)
+
+                local numberObj = {}
+                numberObj.value = rawDefault
+                local yPosition = groupObj.element_y
+
+                local function clampValue(v)
+                    if numberInputConfig.Min and v < numberInputConfig.Min then v = numberInputConfig.Min end
+                    if numberInputConfig.Max and v > numberInputConfig.Max then v = numberInputConfig.Max end
+                    return v
+                end
+
+                numberObj.labelText = create("TextLabel", {
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                    TextColor3 = Color3.fromRGB(124, 124, 124), Text = numberInputConfig.Name, BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 10, 0, yPosition), TextSize = 14.6 * scale_factor,
+                    Size = UDim2.new(0, 130 * scale_factor, 0, 20 * scale_factor),
+                    TextXAlignment = Enum.TextXAlignment.Left, Parent = groupObj.mainFrame
+                })
+
+                local controlWidth = 96 * scale_factor
+                numberObj.controlFrame = create("Frame", {
+                    BackgroundColor3 = Color3.fromRGB(28, 28, 28),
+                    Position = UDim2.new(1, -controlWidth - 10, 0, yPosition - 1),
+                    Size = UDim2.new(0, controlWidth, 0, 22 * scale_factor),
+                    Parent = groupObj.mainFrame
+                })
+                create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = numberObj.controlFrame})
+                create("UIStroke", {Color = Color3.fromRGB(44, 44, 44), Parent = numberObj.controlFrame})
+
+                local btnSize = 22 * scale_factor
+
+                local decrementBtn = create("TextButton", {
+                    Text = "−", BackgroundTransparency = 1,
+                    TextColor3 = Color3.fromRGB(100, 100, 100),
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                    TextSize = 16 * scale_factor,
+                    Size = UDim2.new(0, btnSize, 1, 0),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    Parent = numberObj.controlFrame
+                })
+
+                numberObj.valueLabel = create("TextLabel", {
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                    TextColor3 = Color3.fromRGB(210, 210, 210),
+                    Text = tostring(numberObj.value), BackgroundTransparency = 1,
+                    Position = UDim2.new(0, btnSize, 0, 0),
+                    Size = UDim2.new(1, -btnSize * 2, 1, 0),
+                    TextSize = 13 * scale_factor, TextXAlignment = Enum.TextXAlignment.Center,
+                    Parent = numberObj.controlFrame
+                })
+
+                local incrementBtn = create("TextButton", {
+                    Text = "+", BackgroundTransparency = 1,
+                    TextColor3 = Color3.fromRGB(100, 100, 100),
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                    TextSize = 16 * scale_factor,
+                    Size = UDim2.new(0, btnSize, 1, 0),
+                    Position = UDim2.new(1, -btnSize, 0, 0),
+                    Parent = numberObj.controlFrame
+                })
+
+                local function updateDisplay()
+                    numberObj.valueLabel.Text = tostring(numberObj.value)
+                end
+
+                function numberObj:Set(value, silent)
+                    numberObj.value = clampValue(tonumber(value) or numberObj.value)
+                    updateDisplay()
+                    if not silent then
+                        numberInputConfig.Callback(numberObj.value)
+                    end
+                end
+
+                function numberObj:Get()
+                    return numberObj.value
+                end
+
+                decrementBtn.MouseButton1Click:Connect(function()
+                    numberObj:Set(numberObj.value - numberInputConfig.Step)
+                end)
+                incrementBtn.MouseButton1Click:Connect(function()
+                    numberObj:Set(numberObj.value + numberInputConfig.Step)
+                end)
+
+                decrementBtn.MouseEnter:Connect(function() tween_to(decrementBtn, {TextColor3 = Color3.fromRGB(180, 180, 180)}, 0.15) end)
+                decrementBtn.MouseLeave:Connect(function() tween_to(decrementBtn, {TextColor3 = Color3.fromRGB(100, 100, 100)}, 0.15) end)
+                incrementBtn.MouseEnter:Connect(function() tween_to(incrementBtn, {TextColor3 = Color3.fromRGB(180, 180, 180)}, 0.15) end)
+                incrementBtn.MouseLeave:Connect(function() tween_to(incrementBtn, {TextColor3 = Color3.fromRGB(100, 100, 100)}, 0.15) end)
+
+                groupObj.Library:RegisterControl(numberInputConfig.Flag, function()
+                    return numberObj:Get()
+                end, function(value)
+                    numberObj:Set(value, true)
+                end)
+
+                groupObj.element_y = groupObj.element_y + 28 * scale_factor
+                update_group_size()
+                table.insert(groupObj.elements, numberObj)
+                return numberObj
+            end
+
+            function groupObj:AddBadge(badgeConfig)
+                badgeConfig = badgeConfig or {}
+                badgeConfig.Name = badgeConfig.Name or "Badge"
+                badgeConfig.Value = tostring(badgeConfig.Value or "")
+                badgeConfig.Color = badgeConfig.Color or "blue"
+                addSearchTerm(badgeConfig.Name)
+                addSearchTerm(badgeConfig.Value)
+
+                local badgeObj = {}
+                local yPosition = groupObj.element_y
+
+                local colorMap = {
+                    blue   = {bg = Color3.fromRGB(2, 60, 120),   text = Color3.fromRGB(130, 195, 255)},
+                    green  = {bg = Color3.fromRGB(10, 70, 30),   text = Color3.fromRGB(100, 220, 130)},
+                    red    = {bg = Color3.fromRGB(90, 15, 15),   text = Color3.fromRGB(255, 110, 110)},
+                    yellow = {bg = Color3.fromRGB(80, 55, 5),    text = Color3.fromRGB(250, 190, 80)},
+                    purple = {bg = Color3.fromRGB(60, 20, 100),  text = Color3.fromRGB(195, 155, 255)},
+                    gray   = {bg = Color3.fromRGB(30, 30, 30),   text = Color3.fromRGB(150, 150, 150)},
+                }
+                local colorEntry = colorMap[badgeConfig.Color] or colorMap.blue
+
+                badgeObj.labelText = create("TextLabel", {
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                    TextColor3 = Color3.fromRGB(124, 124, 124), Text = badgeConfig.Name, BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 10, 0, yPosition), TextSize = 14 * scale_factor,
+                    Size = UDim2.new(0, 155 * scale_factor, 0, 20 * scale_factor),
+                    TextXAlignment = Enum.TextXAlignment.Left, Parent = groupObj.mainFrame
+                })
+
+                local measuredW = math.max(38 * scale_factor, measure_text_width(badgeConfig.Value, 12 * scale_factor) + 18 * scale_factor)
+
+                badgeObj.pillFrame = create("Frame", {
+                    BackgroundColor3 = colorEntry.bg,
+                    Position = UDim2.new(1, -measuredW - 10, 0, yPosition + 2),
+                    Size = UDim2.new(0, measuredW, 0, 18 * scale_factor),
+                    Parent = groupObj.mainFrame
+                })
+                create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = badgeObj.pillFrame})
+
+                badgeObj.valueLabel = create("TextLabel", {
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                    TextColor3 = colorEntry.text, Text = badgeConfig.Value, BackgroundTransparency = 1,
+                    Size = UDim2.new(1, -4, 1, 0), Position = UDim2.new(0, 2, 0, 0),
+                    TextSize = 12 * scale_factor, TextXAlignment = Enum.TextXAlignment.Center,
+                    TextTruncate = Enum.TextTruncate.AtEnd, Parent = badgeObj.pillFrame
+                })
+
+                function badgeObj:Set(newValue, newColor)
+                    newValue = tostring(newValue or "")
+                    badgeObj.valueLabel.Text = newValue
+                    local newW = math.max(38 * scale_factor, measure_text_width(newValue, 12 * scale_factor) + 18 * scale_factor)
+                    tween_to(badgeObj.pillFrame, {
+                        Size = UDim2.new(0, newW, 0, 18 * scale_factor),
+                        Position = UDim2.new(1, -newW - 10, 0, yPosition + 2)
+                    }, 0.18)
+                    if newColor then
+                        local c = colorMap[newColor] or colorMap.blue
+                        tween_to(badgeObj.pillFrame, {BackgroundColor3 = c.bg}, 0.2)
+                        tween_to(badgeObj.valueLabel, {TextColor3 = c.text}, 0.2)
+                    end
+                end
+
+                function badgeObj:Get()
+                    return badgeObj.valueLabel.Text
+                end
+
+                groupObj.element_y = groupObj.element_y + 28 * scale_factor
+                update_group_size()
+                table.insert(groupObj.elements, badgeObj)
+                return badgeObj
+            end
+
             function groupObj:AddDivider()
                 local yPosition = groupObj.element_y
                 local dividerFrame = create("Frame", {
@@ -7902,6 +8162,27 @@ function atom_ui.Demo()
     })
 
     misc_group:AddDivider()
+
+    misc_group:AddNumberInput({
+        Name = "Max Players",
+        Default = 10,
+        Min = 1,
+        Max = 100,
+        Step = 1,
+        Callback = function(val) print("[Demo] MaxPlayers:", val) end
+    })
+
+    misc_group:AddProgressBar({
+        Name = "Download Progress",
+        Value = 0.72,
+        ShowPercent = true,
+    })
+
+    misc_group:AddBadge({
+        Name = "Script Status",
+        Value = "Active",
+        Color = "green"
+    })
 
     misc_group:AddLabel({Name = "v1.0.0 - AtomUI Demo"})
 
