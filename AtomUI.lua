@@ -7849,10 +7849,288 @@ function atom_ui:AddSection(config)
             return groupObj
         end
         
+        tabObj.subtabs = {}
+        tabObj.active_subtab = nil
+        tabObj._subtab_bar = nil
+        tabObj._subtab_bar_height = 36 * scale_factor
+
+        function tabObj:AddSubTab(subTabConfig)
+            subTabConfig = subTabConfig or {}
+            subTabConfig.Name = subTabConfig.Name or "SubTab"
+            subTabConfig.Icon = subTabConfig.Icon and get_icon(subTabConfig.Icon) or nil
+
+            if not tabObj._subtab_bar then
+                tabObj._subtab_bar = create("Frame", {
+                    BackgroundColor3 = Color3.fromRGB(14, 14, 14),
+                    Position = UDim2.new(0, 0, 0, 0),
+                    Size = UDim2.new(1, 0, 0, tabObj._subtab_bar_height),
+                    ClipsDescendants = true,
+                    ZIndex = 3,
+                    Parent = tabObj.content_scroll
+                })
+                create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = tabObj._subtab_bar})
+                create("UIStroke", {Color = Color3.fromRGB(30, 30, 30), Parent = tabObj._subtab_bar})
+
+                tabObj._subtab_pill_layout = create("UIListLayout", {
+                    FillDirection = Enum.FillDirection.Horizontal,
+                    Padding = UDim.new(0, 4 * scale_factor),
+                    SortOrder = Enum.SortOrder.LayoutOrder,
+                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    Parent = tabObj._subtab_bar
+                })
+                create("UIPadding", {
+                    PaddingLeft = UDim.new(0, 6 * scale_factor),
+                    PaddingRight = UDim.new(0, 6 * scale_factor),
+                    Parent = tabObj._subtab_bar
+                })
+
+                tabObj.left_column.Position = UDim2.new(0, 0, 0, tabObj._subtab_bar_height + 8 * scale_factor)
+                tabObj.right_column.Position = UDim2.new(0, 272 * scale_factor, 0, tabObj._subtab_bar_height + 8 * scale_factor)
+            end
+
+            local subTabObj = {}
+            subTabObj.tab_name = subTabConfig.Name
+            subTabObj.groups = {}
+            subTabObj.group_offsets = {Left = 0, Right = 0}
+            subTabObj.isActive = false
+            subTabObj.Library = tabObj.Library
+
+            local barH = tabObj._subtab_bar_height
+            local pillH = 26 * scale_factor
+
+            subTabObj.pill = create("TextButton", {
+                BackgroundColor3 = sectionObj.Library.config.AccentColor,
+                BackgroundTransparency = 1,
+                AutomaticSize = Enum.AutomaticSize.X,
+                Size = UDim2.new(0, 0, 0, pillH),
+                Text = "",
+                ZIndex = 4,
+                Parent = tabObj._subtab_bar
+            })
+            create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = subTabObj.pill})
+
+            local xOffset = 10 * scale_factor
+
+            if subTabConfig.Icon then
+                subTabObj.pillIcon = create("ImageLabel", {
+                    Image = subTabConfig.Icon,
+                    ImageColor3 = Color3.fromRGB(90, 90, 90),
+                    BackgroundTransparency = 1,
+                    Position = UDim2.new(0, xOffset, 0.5, -7 * scale_factor),
+                    Size = UDim2.new(0, 14 * scale_factor, 0, 14 * scale_factor),
+                    ZIndex = 5,
+                    Parent = subTabObj.pill
+                })
+                xOffset = xOffset + 18 * scale_factor
+            end
+
+            subTabObj.pillLabel = create("TextLabel", {
+                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                TextColor3 = Color3.fromRGB(90, 90, 90),
+                Text = subTabConfig.Name,
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, xOffset, 0.5, -7.5 * scale_factor),
+                Size = UDim2.new(0, 0, 0, 15 * scale_factor),
+                AutomaticSize = Enum.AutomaticSize.X,
+                TextSize = 13 * scale_factor,
+                ZIndex = 5,
+                Parent = subTabObj.pill
+            })
+
+            create("UIPadding", {
+                PaddingLeft = UDim.new(0, 10 * scale_factor),
+                PaddingRight = UDim.new(0, 10 * scale_factor),
+                Parent = subTabObj.pill
+            })
+
+            subTabObj.left_column = create("Frame", {
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 0, 0, barH + 8 * scale_factor),
+                Size = UDim2.new(0, 262 * scale_factor, 0, 1000),
+                Visible = false,
+                Parent = tabObj.content_scroll
+            })
+            subTabObj.right_column = create("Frame", {
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 272 * scale_factor, 0, barH + 8 * scale_factor),
+                Size = UDim2.new(0, 262 * scale_factor, 0, 1000),
+                Visible = false,
+                Parent = tabObj.content_scroll
+            })
+
+            local groupSpacingY = 15 * scale_factor
+            local function relayout_subtab_groups()
+                local sideOffsets = {Left = 0, Right = 0}
+                for _, group in ipairs(subTabObj.groups) do
+                    if group.mainFrame and group.mainFrame.Parent then
+                        local side = group.side == "Right" and "Right" or "Left"
+                        local nextY = sideOffsets[side]
+                        group.mainFrame.Position = UDim2.new(0, 1, 0, nextY + 1)
+                        sideOffsets[side] = nextY + group.mainFrame.Size.Y.Offset + groupSpacingY
+                    end
+                end
+                subTabObj.group_offsets.Left = sideOffsets.Left
+                subTabObj.group_offsets.Right = sideOffsets.Right
+                local maxH = math.max(sideOffsets.Left, sideOffsets.Right)
+                tabObj.content_scroll.CanvasSize = UDim2.new(0, tabObj.content_scroll.AbsoluteSize.X, 0, barH + 8 * scale_factor + maxH)
+            end
+
+            function subTabObj:Activate()
+                if subTabObj.isActive then return end
+                if tabObj.active_subtab and tabObj.active_subtab ~= subTabObj then
+                    tabObj.active_subtab:Deactivate()
+                end
+                tabObj.active_subtab = subTabObj
+                subTabObj.isActive = true
+                subTabObj.left_column.Visible = true
+                subTabObj.right_column.Visible = true
+                tabObj.left_column.Visible = false
+                tabObj.right_column.Visible = false
+                tween_to(subTabObj.pill, {BackgroundTransparency = 0}, 0.2)
+                tween_to(subTabObj.pillLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.2)
+                if subTabObj.pillIcon then
+                    tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.2)
+                end
+                relayout_subtab_groups()
+            end
+
+            function subTabObj:Deactivate()
+                subTabObj.isActive = false
+                subTabObj.left_column.Visible = false
+                subTabObj.right_column.Visible = false
+                tween_to(subTabObj.pill, {BackgroundTransparency = 1}, 0.18)
+                tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(90, 90, 90)}, 0.18)
+                if subTabObj.pillIcon then
+                    tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(90, 90, 90)}, 0.18)
+                end
+            end
+
+            subTabObj.pill.MouseButton1Click:Connect(function()
+                if not subTabObj.isActive then subTabObj:Activate() end
+            end)
+            subTabObj.pill.MouseEnter:Connect(function()
+                if not subTabObj.isActive then
+                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(160, 160, 160)}, 0.15)
+                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(160, 160, 160)}, 0.15) end
+                end
+            end)
+            subTabObj.pill.MouseLeave:Connect(function()
+                if not subTabObj.isActive then
+                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(90, 90, 90)}, 0.15)
+                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(90, 90, 90)}, 0.15) end
+                end
+            end)
+
+            function subTabObj:AddGroup(stGroupConfig)
+                stGroupConfig = stGroupConfig or {}
+                stGroupConfig.Name = stGroupConfig.Name or "Group"
+                stGroupConfig.Side = stGroupConfig.Side or "Left"
+                stGroupConfig.Icon = get_icon(stGroupConfig.Icon, default_icons.group)
+                if string.lower(tostring(stGroupConfig.Side)) == "right" then
+                    stGroupConfig.Side = "Right"
+                else
+                    stGroupConfig.Side = "Left"
+                end
+
+                local groupObj = {}
+                groupObj.group_name = stGroupConfig.Name
+                groupObj.searchTerms = {stGroupConfig.Name}
+                groupObj.elements = {}
+                groupObj.Library = subTabObj.Library
+                groupObj.side = stGroupConfig.Side
+                groupObj.element_y = 38 * scale_factor
+                local function createAutoFlag(elementName)
+                    return tostring(tabObj.tab_name) .. "." .. tostring(subTabObj.tab_name) .. "." .. tostring(groupObj.group_name) .. "." .. tostring(elementName or "Value")
+                end
+                local function addSearchTerm(term)
+                    local normalized = normalize_search(term)
+                    if normalized ~= "" then table.insert(groupObj.searchTerms, tostring(term)) end
+                end
+
+                local parentColumn = groupObj.side == "Left" and subTabObj.left_column or subTabObj.right_column
+                groupObj.mainFrame = create("Frame", {
+                    BackgroundColor3 = Color3.fromRGB(18, 18, 18), Position = UDim2.new(0, 1, 0, 1),
+                    Size = UDim2.new(1, -2, 0, 54 * scale_factor),
+                    ClipsDescendants = true, Parent = parentColumn
+                })
+
+                local stStroke = create("UIStroke", {Color = Color3.fromRGB(33, 33, 33), Parent = groupObj.mainFrame})
+                create("UIGradient", {
+                    Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.new(1,1,1)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150,150,150)), ColorSequenceKeypoint.new(1, Color3.new(1,1,1))}),
+                    Rotation = 260, Parent = stStroke
+                })
+                create("UICorner", {CornerRadius = UDim.new(0, 11), Parent = groupObj.mainFrame})
+                create("ImageLabel", {
+                    Image = stGroupConfig.Icon, BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 10, 0, 10 * scale_factor),
+                    Size = UDim2.new(0, 17 * scale_factor, 0, 17 * scale_factor), Parent = groupObj.mainFrame
+                })
+                create("TextLabel", {
+                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                    TextColor3 = Color3.new(1, 1, 1), Text = stGroupConfig.Name, BackgroundTransparency = 1,
+                    Position = UDim2.new(0, 33, 0, 8 * scale_factor), TextSize = 15.6 * scale_factor,
+                    Size = UDim2.new(0, 215 * scale_factor, 0, 16 * scale_factor),
+                    TextXAlignment = Enum.TextXAlignment.Left,
+                    TextTruncate = Enum.TextTruncate.AtEnd, Parent = groupObj.mainFrame
+                })
+
+                local function update_group_size()
+                    local newHeight = groupObj.element_y + 12 * scale_factor
+                    groupObj.mainFrame.Size = UDim2.new(1, -2, 0, newHeight)
+                    relayout_subtab_groups()
+                end
+
+                -- Borrow element Add* methods from tabObj:AddGroup by temporarily
+                -- pointing tabObj's columns at the subtab columns, calling AddGroup,
+                -- then swapping the resulting group's mainFrame for the one we already built.
+                local _sl = tabObj.left_column
+                local _sr = tabObj.right_column
+                local _sg = tabObj.groups
+                local _so = tabObj.group_offsets
+
+                tabObj.left_column   = subTabObj.left_column
+                tabObj.right_column  = subTabObj.right_column
+                tabObj.groups        = subTabObj.groups
+                tabObj.group_offsets = subTabObj.group_offsets
+
+                local borrowed = tabObj:AddGroup(stGroupConfig)
+                -- swap the auto-created mainFrame for the one we already positioned
+                borrowed.mainFrame:Destroy()
+                borrowed.mainFrame = groupObj.mainFrame
+                -- fix the update_group_size reference inside borrowed so it calls relayout_subtab_groups
+                borrowed._relayout = relayout_subtab_groups
+
+                tabObj.left_column   = _sl
+                tabObj.right_column  = _sr
+                tabObj.groups        = _sg
+                tabObj.group_offsets = _so
+
+                -- remove the entry AddGroup pushed into subTabObj.groups (we'll re-add below)
+                for i = #subTabObj.groups, 1, -1 do
+                    if subTabObj.groups[i] == borrowed then
+                        table.remove(subTabObj.groups, i)
+                        break
+                    end
+                end
+
+                table.insert(subTabObj.groups, borrowed)
+                relayout_subtab_groups()
+                return borrowed
+            end
+
+            table.insert(tabObj.subtabs, subTabObj)
+
+            if #tabObj.subtabs == 1 then
+                tabObj.left_column.Visible = false
+                tabObj.right_column.Visible = false
+                subTabObj:Activate()
+            end
+
+            return subTabObj
+        end
+
         table.insert(sectionObj.tabs, tabObj)
         table.insert(sectionObj.Library.all_tabs, tabObj)
-        
-        if #sectionObj.Library.all_tabs == 1 then tabObj:Activate() end
         
         task.defer(function()
             local tabsHeight = sectionObj.tab_layout.AbsoluteContentSize.Y
@@ -8187,6 +8465,28 @@ function atom_ui.Demo()
     misc_group:AddLabel({Name = "v1.0.0 - AtomUI Demo"})
 
     local settings_section = lib:AddSection({Name = "Config", Icon = "settings"})
+
+    -- SubTab demo
+    local sub_tab = main_section:AddTab({
+        Name = "SubTabs",
+        Description = "SubTab demo",
+        Icon = "layers"
+    })
+
+    local st_general = sub_tab:AddSubTab({Name = "General", Icon = "sliders"})
+    local st_gen_left = st_general:AddGroup({Name = "Settings", Side = "Left", Icon = "settings"})
+    st_gen_left:AddToggle({Name = "Feature A", Default = true, Callback = function(v) print("[Demo] Feature A:", v) end})
+    st_gen_left:AddSlider({Name = "Intensity", Min = 0, Max = 100, Default = 50, Increment = 1, Callback = function(v) print("[Demo] Intensity:", v) end})
+
+    local st_visual = sub_tab:AddSubTab({Name = "Visual", Icon = "eye"})
+    local st_vis_left = st_visual:AddGroup({Name = "ESP", Side = "Left", Icon = "box"})
+    st_vis_left:AddToggle({Name = "Box ESP", Default = false, Callback = function(v) print("[Demo] Box ESP:", v) end})
+    st_vis_left:AddToggle({Name = "Name ESP", Default = false, Callback = function(v) print("[Demo] Name ESP:", v) end})
+
+    local st_advanced = sub_tab:AddSubTab({Name = "Advanced", Icon = "zap"})
+    local st_adv_left = st_advanced:AddGroup({Name = "Advanced Settings", Side = "Left", Icon = "cpu"})
+    st_adv_left:AddNumberInput({Name = "Max Targets", Default = 5, Min = 1, Max = 50, Step = 1, Callback = function(v) print("[Demo] MaxTargets:", v) end})
+    st_adv_left:AddBadge({Name = "Status", Value = "Active", Color = "green"})
 
     local cfg_tab = settings_section:AddTab({
         Name = "Settings",
