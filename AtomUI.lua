@@ -923,7 +923,9 @@ function atom_ui.new(config)
     
     self:BuildUI()
     rawset(get_shared_env(), RUNTIME_INSTANCE_KEY, self)
-    
+
+    print("Loaded AtomUI v1.1 | For credits and documentation go to tinyurl.com/atomui")
+
     return self
 end
 
@@ -7856,7 +7858,7 @@ function atom_ui:AddSection(config)
         tabObj.subtabs = {}
         tabObj.active_subtab = nil
         tabObj._subtab_bar = nil
-        tabObj._subtab_bar_height = 36 * scale_factor
+        tabObj._subtab_bar_height = 32 * scale_factor
 
         function tabObj:AddSubTab(subTabConfig)
             subTabConfig = subTabConfig or {}
@@ -7865,30 +7867,28 @@ function atom_ui:AddSection(config)
 
             if not tabObj._subtab_bar then
                 tabObj._subtab_bar = create("Frame", {
-                    BackgroundColor3 = Color3.fromRGB(14, 14, 14),
+                    BackgroundTransparency = 1,
                     Position = UDim2.new(0, 0, 0, 0),
                     Size = UDim2.new(1, 0, 0, tabObj._subtab_bar_height),
-                    ClipsDescendants = true,
                     ZIndex = 3,
                     Parent = tabObj.content_scroll
                 })
-                create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = tabObj._subtab_bar})
-                create("UIStroke", {Color = Color3.fromRGB(30, 30, 30), Parent = tabObj._subtab_bar})
-
-                tabObj._subtab_pill_layout = create("UIListLayout", {
+                create("Frame", {
+                    BackgroundColor3 = Color3.fromRGB(36, 36, 36),
+                    Position = UDim2.new(0, 0, 1, -1),
+                    Size = UDim2.new(1, 0, 0, 1),
+                    BorderSizePixel = 0,
+                    ZIndex = 3,
+                    Parent = tabObj._subtab_bar
+                })
+                create("UIListLayout", {
                     FillDirection = Enum.FillDirection.Horizontal,
-                    Padding = UDim.new(0, 4 * scale_factor),
+                    Padding = UDim.new(0, 0),
                     SortOrder = Enum.SortOrder.LayoutOrder,
-                    VerticalAlignment = Enum.VerticalAlignment.Center,
+                    VerticalAlignment = Enum.VerticalAlignment.Bottom,
                     Parent = tabObj._subtab_bar
                 })
-                create("UIPadding", {
-                    PaddingLeft = UDim.new(0, 6 * scale_factor),
-                    PaddingRight = UDim.new(0, 6 * scale_factor),
-                    Parent = tabObj._subtab_bar
-                })
-
-                tabObj.left_column.Position = UDim2.new(0, 0, 0, tabObj._subtab_bar_height + 8 * scale_factor)
+                tabObj.left_column.Position  = UDim2.new(0, 0, 0, tabObj._subtab_bar_height + 8 * scale_factor)
                 tabObj.right_column.Position = UDim2.new(0, 272 * scale_factor, 0, tabObj._subtab_bar_height + 8 * scale_factor)
             end
 
@@ -7900,52 +7900,66 @@ function atom_ui:AddSection(config)
             subTabObj.Library = tabObj.Library
 
             local barH = tabObj._subtab_bar_height
-            local pillH = 26 * scale_factor
+            local accentColor = sectionObj.Library.config.AccentColor
 
             subTabObj.pill = create("TextButton", {
-                BackgroundColor3 = sectionObj.Library.config.AccentColor,
                 BackgroundTransparency = 1,
                 AutomaticSize = Enum.AutomaticSize.X,
-                Size = UDim2.new(0, 0, 0, pillH),
+                Size = UDim2.new(0, 0, 1, 0),
                 Text = "",
                 ZIndex = 4,
                 Parent = tabObj._subtab_bar
             })
-            create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = subTabObj.pill})
+            create("UIPadding", {
+                PaddingLeft  = UDim.new(0, 14 * scale_factor),
+                PaddingRight = UDim.new(0, 14 * scale_factor),
+                Parent = subTabObj.pill
+            })
+            create("UIListLayout", {
+                FillDirection = Enum.FillDirection.Horizontal,
+                Padding = UDim.new(0, 5 * scale_factor),
+                VerticalAlignment = Enum.VerticalAlignment.Center,
+                HorizontalAlignment = Enum.HorizontalAlignment.Center,
+                SortOrder = Enum.SortOrder.LayoutOrder,
+                Parent = subTabObj.pill
+            })
 
-            local xOffset = 10 * scale_factor
-
-            if subTabConfig.Icon then
+            if subTabConfig.Icon and subTabConfig.Icon ~= "" then
                 subTabObj.pillIcon = create("ImageLabel", {
                     Image = subTabConfig.Icon,
-                    ImageColor3 = Color3.fromRGB(90, 90, 90),
+                    ImageColor3 = Color3.fromRGB(70, 70, 70),
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, xOffset, 0.5, -7 * scale_factor),
-                    Size = UDim2.new(0, 14 * scale_factor, 0, 14 * scale_factor),
+                    Size = UDim2.new(0, 13 * scale_factor, 0, 13 * scale_factor),
                     ZIndex = 5,
+                    LayoutOrder = 0,
                     Parent = subTabObj.pill
                 })
-                xOffset = xOffset + 18 * scale_factor
             end
 
             subTabObj.pillLabel = create("TextLabel", {
                 FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-                TextColor3 = Color3.fromRGB(90, 90, 90),
+                TextColor3 = Color3.fromRGB(70, 70, 70),
                 Text = subTabConfig.Name,
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, xOffset, 0.5, -7.5 * scale_factor),
-                Size = UDim2.new(0, 0, 0, 15 * scale_factor),
+                Size = UDim2.new(0, 0, 1, -4),
                 AutomaticSize = Enum.AutomaticSize.X,
                 TextSize = 13 * scale_factor,
                 ZIndex = 5,
+                LayoutOrder = 1,
                 Parent = subTabObj.pill
             })
 
-            create("UIPadding", {
-                PaddingLeft = UDim.new(0, 10 * scale_factor),
-                PaddingRight = UDim.new(0, 10 * scale_factor),
+            subTabObj.underline = create("Frame", {
+                BackgroundColor3 = accentColor,
+                AnchorPoint = Vector2.new(0, 1),
+                Position = UDim2.new(0, 14 * scale_factor, 1, 0),
+                Size = UDim2.new(1, -(14 * scale_factor * 2), 0, 2),
+                BorderSizePixel = 0,
+                BackgroundTransparency = 1,
+                ZIndex = 5,
                 Parent = subTabObj.pill
             })
+            create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = subTabObj.underline})
 
             subTabObj.left_column = create("Frame", {
                 BackgroundTransparency = 1,
@@ -7986,27 +8000,23 @@ function atom_ui:AddSection(config)
                 end
                 tabObj.active_subtab = subTabObj
                 subTabObj.isActive = true
-                subTabObj.left_column.Visible = true
+                subTabObj.left_column.Visible  = true
                 subTabObj.right_column.Visible = true
-                tabObj.left_column.Visible = false
+                tabObj.left_column.Visible  = false
                 tabObj.right_column.Visible = false
-                tween_to(subTabObj.pill, {BackgroundTransparency = 0}, 0.2)
-                tween_to(subTabObj.pillLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.2)
-                if subTabObj.pillIcon then
-                    tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.2)
-                end
+                tween_to(subTabObj.underline, {BackgroundTransparency = 0}, 0.18)
+                tween_to(subTabObj.pillLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.18)
+                if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.18) end
                 relayout_subtab_groups()
             end
 
             function subTabObj:Deactivate()
                 subTabObj.isActive = false
-                subTabObj.left_column.Visible = false
+                subTabObj.left_column.Visible  = false
                 subTabObj.right_column.Visible = false
-                tween_to(subTabObj.pill, {BackgroundTransparency = 1}, 0.18)
-                tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(90, 90, 90)}, 0.18)
-                if subTabObj.pillIcon then
-                    tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(90, 90, 90)}, 0.18)
-                end
+                tween_to(subTabObj.underline, {BackgroundTransparency = 1}, 0.15)
+                tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(70, 70, 70)}, 0.15)
+                if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(70, 70, 70)}, 0.15) end
             end
 
             subTabObj.pill.MouseButton1Click:Connect(function()
@@ -8014,14 +8024,14 @@ function atom_ui:AddSection(config)
             end)
             subTabObj.pill.MouseEnter:Connect(function()
                 if not subTabObj.isActive then
-                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(160, 160, 160)}, 0.15)
-                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(160, 160, 160)}, 0.15) end
+                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(160, 160, 160)}, 0.12)
+                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(160, 160, 160)}, 0.12) end
                 end
             end)
             subTabObj.pill.MouseLeave:Connect(function()
                 if not subTabObj.isActive then
-                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(90, 90, 90)}, 0.15)
-                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(90, 90, 90)}, 0.15) end
+                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(70, 70, 70)}, 0.12)
+                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(70, 70, 70)}, 0.12) end
                 end
             end)
 
