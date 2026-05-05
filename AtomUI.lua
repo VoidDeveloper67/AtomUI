@@ -5273,6 +5273,10 @@ function atom_ui:AddSection(config)
         
         local groupSpacingY = 15 * scale_factor
         local function relayout_groups()
+            if tabObj._relayout_override then
+                tabObj._relayout_override()
+                return
+            end
             local sideOffsets = {Left = 0, Right = 0}
             for _, group in ipairs(tabObj.groups) do
                 if group.mainFrame and group.mainFrame.Parent then
@@ -7857,7 +7861,7 @@ function atom_ui:AddSection(config)
         function tabObj:AddSubTab(subTabConfig)
             subTabConfig = subTabConfig or {}
             subTabConfig.Name = subTabConfig.Name or "SubTab"
-            subTabConfig.Icon = subTabConfig.Icon and get_icon(subTabConfig.Icon) or nil
+            subTabConfig.Icon = subTabConfig.Icon and get_icon(subTabConfig.Icon, "") or nil
 
             if not tabObj._subtab_bar then
                 tabObj._subtab_bar = create("Frame", {
@@ -8081,31 +8085,29 @@ function atom_ui:AddSection(config)
                 end
 
                 -- Borrow element Add* methods from tabObj:AddGroup by temporarily
-                -- pointing tabObj's columns at the subtab columns, calling AddGroup,
-                -- then swapping the resulting group's mainFrame for the one we already built.
+                -- pointing tabObj's columns at the subtab columns and setting a
+                -- relayout override so update_group_size calls relayout_subtab_groups.
                 local _sl = tabObj.left_column
                 local _sr = tabObj.right_column
                 local _sg = tabObj.groups
                 local _so = tabObj.group_offsets
 
-                tabObj.left_column   = subTabObj.left_column
-                tabObj.right_column  = subTabObj.right_column
-                tabObj.groups        = subTabObj.groups
-                tabObj.group_offsets = subTabObj.group_offsets
+                tabObj.left_column        = subTabObj.left_column
+                tabObj.right_column       = subTabObj.right_column
+                tabObj.groups             = subTabObj.groups
+                tabObj.group_offsets      = subTabObj.group_offsets
+                tabObj._relayout_override = relayout_subtab_groups
 
                 local borrowed = tabObj:AddGroup(stGroupConfig)
-                -- swap the auto-created mainFrame for the one we already positioned
-                borrowed.mainFrame:Destroy()
-                borrowed.mainFrame = groupObj.mainFrame
-                -- fix the update_group_size reference inside borrowed so it calls relayout_subtab_groups
-                borrowed._relayout = relayout_subtab_groups
 
-                tabObj.left_column   = _sl
-                tabObj.right_column  = _sr
-                tabObj.groups        = _sg
-                tabObj.group_offsets = _so
+                tabObj.left_column        = _sl
+                tabObj.right_column       = _sr
+                tabObj.groups             = _sg
+                tabObj.group_offsets      = _so
+                tabObj._relayout_override = nil
 
-                -- remove the entry AddGroup pushed into subTabObj.groups (we'll re-add below)
+                -- AddGroup already inserted borrowed into subTabObj.groups via the swap;
+                -- remove it so we control insertion order below
                 for i = #subTabObj.groups, 1, -1 do
                     if subTabObj.groups[i] == borrowed then
                         table.remove(subTabObj.groups, i)
