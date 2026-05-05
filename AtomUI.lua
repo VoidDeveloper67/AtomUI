@@ -7870,24 +7870,19 @@ function atom_ui:AddSection(config)
                     BackgroundTransparency = 1,
                     Position = UDim2.new(0, 0, 0, 0),
                     Size = UDim2.new(1, 0, 0, tabObj._subtab_bar_height),
+                    ClipsDescendants = false,
                     ZIndex = 3,
                     Parent = tabObj.content_scroll
                 })
                 create("Frame", {
-                    BackgroundColor3 = Color3.fromRGB(36, 36, 36),
+                    BackgroundColor3 = Color3.fromRGB(38, 38, 38),
                     Position = UDim2.new(0, 0, 1, -1),
                     Size = UDim2.new(1, 0, 0, 1),
                     BorderSizePixel = 0,
-                    ZIndex = 3,
+                    ZIndex = 4,
                     Parent = tabObj._subtab_bar
                 })
-                create("UIListLayout", {
-                    FillDirection = Enum.FillDirection.Horizontal,
-                    Padding = UDim.new(0, 0),
-                    SortOrder = Enum.SortOrder.LayoutOrder,
-                    VerticalAlignment = Enum.VerticalAlignment.Bottom,
-                    Parent = tabObj._subtab_bar
-                })
+                tabObj._subtab_bar._nextX = 0
                 tabObj.left_column.Position  = UDim2.new(0, 0, 0, tabObj._subtab_bar_height + 8 * scale_factor)
                 tabObj.right_column.Position = UDim2.new(0, 272 * scale_factor, 0, tabObj._subtab_bar_height + 8 * scale_factor)
             end
@@ -7901,39 +7896,45 @@ function atom_ui:AddSection(config)
 
             local barH = tabObj._subtab_bar_height
             local accentColor = sectionObj.Library.config.AccentColor
+            local padX = 14 * scale_factor
+            local iconSize = 13 * scale_factor
+            local fontSize = 13 * scale_factor
+
+            -- measure text width using TextService
+            local textW = 60 * scale_factor
+            pcall(function()
+                local ts = game:GetService("TextService")
+                local sz = ts:GetTextSize(subTabConfig.Name, fontSize,
+                    Enum.Font.GothamSemibold, Vector2.new(500, barH))
+                textW = sz.X
+            end)
+            local iconW = (subTabConfig.Icon and subTabConfig.Icon ~= "") and (iconSize + 5 * scale_factor) or 0
+            local btnW = padX + iconW + textW + padX
+
+            local currentX = tabObj._subtab_bar._nextX or 0
+            tabObj._subtab_bar._nextX = currentX + btnW
 
             subTabObj.pill = create("TextButton", {
                 BackgroundTransparency = 1,
-                AutomaticSize = Enum.AutomaticSize.X,
-                Size = UDim2.new(0, 0, 1, 0),
+                Position = UDim2.new(0, currentX, 0, 0),
+                Size = UDim2.new(0, btnW, 0, barH),
                 Text = "",
                 ZIndex = 4,
                 Parent = tabObj._subtab_bar
             })
-            create("UIPadding", {
-                PaddingLeft  = UDim.new(0, 14 * scale_factor),
-                PaddingRight = UDim.new(0, 14 * scale_factor),
-                Parent = subTabObj.pill
-            })
-            create("UIListLayout", {
-                FillDirection = Enum.FillDirection.Horizontal,
-                Padding = UDim.new(0, 5 * scale_factor),
-                VerticalAlignment = Enum.VerticalAlignment.Center,
-                HorizontalAlignment = Enum.HorizontalAlignment.Center,
-                SortOrder = Enum.SortOrder.LayoutOrder,
-                Parent = subTabObj.pill
-            })
 
+            local contentOffsetX = padX
             if subTabConfig.Icon and subTabConfig.Icon ~= "" then
                 subTabObj.pillIcon = create("ImageLabel", {
                     Image = subTabConfig.Icon,
                     ImageColor3 = Color3.fromRGB(70, 70, 70),
                     BackgroundTransparency = 1,
-                    Size = UDim2.new(0, 13 * scale_factor, 0, 13 * scale_factor),
+                    Position = UDim2.new(0, contentOffsetX, 0.5, -iconSize / 2),
+                    Size = UDim2.new(0, iconSize, 0, iconSize),
                     ZIndex = 5,
-                    LayoutOrder = 0,
                     Parent = subTabObj.pill
                 })
+                contentOffsetX = contentOffsetX + iconSize + 5 * scale_factor
             end
 
             subTabObj.pillLabel = create("TextLabel", {
@@ -7941,19 +7942,18 @@ function atom_ui:AddSection(config)
                 TextColor3 = Color3.fromRGB(70, 70, 70),
                 Text = subTabConfig.Name,
                 BackgroundTransparency = 1,
-                Size = UDim2.new(0, 0, 1, -4),
-                AutomaticSize = Enum.AutomaticSize.X,
-                TextSize = 13 * scale_factor,
+                Position = UDim2.new(0, contentOffsetX, 0, 0),
+                Size = UDim2.new(0, textW, 1, -3),
+                TextSize = fontSize,
+                TextXAlignment = Enum.TextXAlignment.Left,
                 ZIndex = 5,
-                LayoutOrder = 1,
                 Parent = subTabObj.pill
             })
 
             subTabObj.underline = create("Frame", {
                 BackgroundColor3 = accentColor,
-                AnchorPoint = Vector2.new(0, 1),
-                Position = UDim2.new(0, 14 * scale_factor, 1, 0),
-                Size = UDim2.new(1, -(14 * scale_factor * 2), 0, 2),
+                Position = UDim2.new(0, padX, 1, -2),
+                Size = UDim2.new(0, btnW - padX * 2, 0, 2),
                 BorderSizePixel = 0,
                 BackgroundTransparency = 1,
                 ZIndex = 5,
