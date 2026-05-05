@@ -7882,7 +7882,7 @@ function atom_ui:AddSection(config)
                     ZIndex = 4,
                     Parent = tabObj._subtab_bar
                 })
-                tabObj._subtab_bar._nextX = 0
+                tabObj._subtab_next_x = 0
                 tabObj.left_column.Position  = UDim2.new(0, 0, 0, tabObj._subtab_bar_height + 8 * scale_factor)
                 tabObj.right_column.Position = UDim2.new(0, 272 * scale_factor, 0, tabObj._subtab_bar_height + 8 * scale_factor)
             end
@@ -7900,19 +7900,24 @@ function atom_ui:AddSection(config)
             local iconSize = 13 * scale_factor
             local fontSize = 13 * scale_factor
 
-            -- measure text width using TextService
+            -- measure text width with a temporary off-screen label
             local textW = 60 * scale_factor
             pcall(function()
-                local ts = game:GetService("TextService")
-                local sz = ts:GetTextSize(subTabConfig.Name, fontSize,
-                    Enum.Font.GothamSemibold, Vector2.new(500, barH))
-                textW = sz.X
+                local tmp = Instance.new("TextLabel")
+                tmp.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold)
+                tmp.TextSize = fontSize
+                tmp.Text = subTabConfig.Name
+                tmp.Size = UDim2.new(0, 500, 0, 20)
+                tmp.Parent = game:GetService("CoreGui")
+                textW = tmp.TextBounds.X + 2
+                tmp:Destroy()
             end)
+
             local iconW = (subTabConfig.Icon and subTabConfig.Icon ~= "") and (iconSize + 5 * scale_factor) or 0
             local btnW = padX + iconW + textW + padX
 
-            local currentX = tabObj._subtab_bar._nextX or 0
-            tabObj._subtab_bar._nextX = currentX + btnW
+            local currentX = tabObj._subtab_next_x
+            tabObj._subtab_next_x = currentX + btnW
 
             subTabObj.pill = create("TextButton", {
                 BackgroundTransparency = 1,
