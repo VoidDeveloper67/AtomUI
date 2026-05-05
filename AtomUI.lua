@@ -8159,6 +8159,234 @@ function atom_ui:AddSection(config)
             sectionObj.Library:SetSearchFilter(sectionObj.Library._searchQuery)
         end
         
+        function tabObj:AddDiscordWidget(widgetConfig)
+            widgetConfig = widgetConfig or {}
+            local serverId  = tostring(widgetConfig.ServerId  or "")
+            local invite    = tostring(widgetConfig.Invite    or "")
+            local embedW    = 540 * scale_factor
+            local embedH    = 88 * scale_factor
+            local iconSize  = 56 * scale_factor
+            local accentCol = tabObj.Library.config.AccentColor
+
+            -- outer card
+            local card = create("Frame", {
+                BackgroundColor3 = Color3.fromRGB(20, 20, 22),
+                Position = UDim2.new(0, 0, 0, 0),
+                Size = UDim2.new(0, embedW, 0, embedH),
+                ClipsDescendants = true,
+                ZIndex = 2,
+                Parent = tabObj.content_scroll
+            })
+            create("UICorner", {CornerRadius = UDim.new(0, 12), Parent = card})
+            local cardStroke = create("UIStroke", {Color = Color3.fromRGB(40, 40, 44), Thickness = 1, Parent = card})
+
+            -- animated left accent bar
+            local accentBar = create("Frame", {
+                BackgroundColor3 = accentCol,
+                Position = UDim2.new(0, 0, 0, 0),
+                Size = UDim2.new(0, 3, 1, 0),
+                BorderSizePixel = 0,
+                ZIndex = 3,
+                Parent = card
+            })
+
+            -- server icon placeholder (blinking while loading)
+            local iconFrame = create("Frame", {
+                BackgroundColor3 = Color3.fromRGB(30, 30, 34),
+                Position = UDim2.new(0, 16 * scale_factor, 0.5, -iconSize / 2),
+                Size = UDim2.new(0, iconSize, 0, iconSize),
+                ZIndex = 3,
+                Parent = card
+            })
+            create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = iconFrame})
+
+            local iconImg = create("ImageLabel", {
+                BackgroundTransparency = 1,
+                Size = UDim2.new(1, 0, 1, 0),
+                ImageTransparency = 1,
+                ScaleType = Enum.ScaleType.Crop,
+                ZIndex = 4,
+                Parent = iconFrame
+            })
+
+            -- shimmer overlay on icon while loading
+            local shimmer = create("Frame", {
+                BackgroundColor3 = Color3.fromRGB(255, 255, 255),
+                BackgroundTransparency = 0.88,
+                Size = UDim2.new(1, 0, 1, 0),
+                ZIndex = 5,
+                Parent = iconFrame
+            })
+            create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = shimmer})
+
+            -- server name
+            local nameLabel = create("TextLabel", {
+                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+                Text = "Loading...",
+                TextColor3 = Color3.fromRGB(200, 200, 205),
+                TextTransparency = 0.4,
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 16 * scale_factor + iconSize + 14 * scale_factor, 0, 18 * scale_factor),
+                Size = UDim2.new(1, -(16 * scale_factor + iconSize + 28 * scale_factor + 90 * scale_factor), 0, 18 * scale_factor),
+                TextSize = 15 * scale_factor,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                TextTruncate = Enum.TextTruncate.AtEnd,
+                ZIndex = 3,
+                Parent = card
+            })
+
+            -- online badge
+            local badgeFrame = create("Frame", {
+                BackgroundColor3 = Color3.fromRGB(28, 28, 32),
+                Position = UDim2.new(0, 16 * scale_factor + iconSize + 14 * scale_factor, 0, 42 * scale_factor),
+                Size = UDim2.new(0, 90 * scale_factor, 0, 20 * scale_factor),
+                ZIndex = 3,
+                Parent = card
+            })
+            create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = badgeFrame})
+
+            local dot = create("Frame", {
+                BackgroundColor3 = Color3.fromRGB(59, 165, 93),
+                Position = UDim2.new(0, 8 * scale_factor, 0.5, -4 * scale_factor),
+                Size = UDim2.new(0, 8 * scale_factor, 0, 8 * scale_factor),
+                ZIndex = 4,
+                Parent = badgeFrame
+            })
+            create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = dot})
+
+            local onlineLabel = create("TextLabel", {
+                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                Text = "— online",
+                TextColor3 = Color3.fromRGB(59, 165, 93),
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 20 * scale_factor, 0, 0),
+                Size = UDim2.new(1, -24 * scale_factor, 1, 0),
+                TextSize = 11 * scale_factor,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = 4,
+                Parent = badgeFrame
+            })
+
+            -- join button (right side)
+            local joinBtn = create("TextButton", {
+                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+                Text = "Join",
+                TextColor3 = Color3.new(1, 1, 1),
+                BackgroundColor3 = accentCol,
+                Position = UDim2.new(1, -90 * scale_factor, 0.5, -14 * scale_factor),
+                Size = UDim2.new(0, 74 * scale_factor, 0, 28 * scale_factor),
+                TextSize = 13 * scale_factor,
+                ZIndex = 3,
+                Parent = card
+            })
+            create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = joinBtn})
+
+            joinBtn.MouseButton1Click:Connect(function()
+                if invite ~= "" then
+                    pcall(function() setclipboard(invite) end)
+                    local origText = joinBtn.Text
+                    joinBtn.Text = "Copied!"
+                    task.delay(1.5, function()
+                        if joinBtn and joinBtn.Parent then joinBtn.Text = origText end
+                    end)
+                end
+            end)
+            joinBtn.MouseEnter:Connect(function() tween_to(joinBtn, {BackgroundColor3 = Color3.fromRGB(
+                math.clamp(accentCol.R * 255 + 20, 0, 255) / 255,
+                math.clamp(accentCol.G * 255 + 20, 0, 255) / 255,
+                math.clamp(accentCol.B * 255 + 20, 0, 255) / 255)}, 0.15) end)
+            joinBtn.MouseLeave:Connect(function() tween_to(joinBtn, {BackgroundColor3 = accentCol}, 0.15) end)
+
+            -- pulse shimmer animation while loading
+            local pulseRunning = true
+            task.spawn(function()
+                while pulseRunning and shimmer and shimmer.Parent do
+                    tween_to(shimmer, {BackgroundTransparency = 0.75}, 0.7)
+                    task.wait(0.7)
+                    if not pulseRunning then break end
+                    tween_to(shimmer, {BackgroundTransparency = 0.92}, 0.7)
+                    task.wait(0.7)
+                end
+            end)
+
+            -- update canvas size so the card is visible
+            local function update_canvas()
+                tabObj.content_scroll.CanvasSize = UDim2.new(0, embedW, 0,
+                    embedH + 12 * scale_factor + math.max(tabObj.group_offsets.Left, tabObj.group_offsets.Right))
+            end
+            update_canvas()
+
+            -- fetch widget data
+            if serverId ~= "" then
+                task.spawn(function()
+                    local ok, result = pcall(function()
+                        local http = game:GetService("HttpService")
+                        local url = "https://discord.com/api/guilds/" .. serverId .. "/widget.json"
+                        local raw = http:GetAsync(url, true)
+                        return http:JSONDecode(raw)
+                    end)
+
+                    pulseRunning = false
+                    if shimmer and shimmer.Parent then
+                        tween_to(shimmer, {BackgroundTransparency = 1}, 0.3)
+                        task.delay(0.35, function() if shimmer and shimmer.Parent then shimmer:Destroy() end end)
+                    end
+
+                    if ok and result then
+                        local serverName    = tostring(result.name or "Unknown Server")
+                        local onlineCount   = tostring(result.presence_count or 0)
+                        local iconHash      = result.icon
+
+                        -- animate name in
+                        nameLabel.Text = serverName
+                        tween_to(nameLabel, {TextTransparency = 0, TextColor3 = Color3.new(1, 1, 1)}, 0.4)
+                        onlineLabel.Text = onlineCount .. " online"
+
+                        -- load icon if available
+                        if iconHash and iconHash ~= "" and iconHash ~= "null" then
+                            local imgUrl = "https://cdn.discordapp.com/icons/" .. serverId .. "/" .. iconHash .. ".png?size=128"
+                            pcall(function()
+                                iconImg.Image = imgUrl
+                                tween_to(iconImg, {ImageTransparency = 0}, 0.4)
+                            end)
+                        else
+                            -- fallback: show first letter of server name
+                            local letterLabel = create("TextLabel", {
+                                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
+                                Text = string.upper(string.sub(serverName, 1, 1)),
+                                TextColor3 = Color3.new(1, 1, 1),
+                                BackgroundTransparency = 1,
+                                Size = UDim2.new(1, 0, 1, 0),
+                                TextSize = 22 * scale_factor,
+                                ZIndex = 4,
+                                Parent = iconFrame
+                            })
+                            tween_to(letterLabel, {TextTransparency = 0}, 0.4)
+                        end
+
+                        -- subtle card entrance
+                        card.BackgroundTransparency = 1
+                        tween_to(card, {BackgroundTransparency = 0}, 0.35)
+                        tween_to(cardStroke, {Transparency = 0}, 0.35)
+                    else
+                        nameLabel.Text = "Could not load server"
+                        nameLabel.TextColor3 = Color3.fromRGB(180, 80, 80)
+                        tween_to(nameLabel, {TextTransparency = 0}, 0.3)
+                        onlineLabel.Text = "widget disabled"
+                        onlineLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+                        dot.BackgroundColor3 = Color3.fromRGB(130, 130, 130)
+                    end
+                end)
+            end
+
+            return {
+                card = card,
+                SetServerId = function(self2, newId)
+                    serverId = tostring(newId)
+                end,
+            }
+        end
+
         return tabObj
     end
     
