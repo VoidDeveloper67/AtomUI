@@ -546,12 +546,12 @@
   <div class="hero" id="intro">
     <div class="hero-badge">Stable Release</div>
     <h1 class="hero-title">Atom<span>UI</span></h1>
-    <p class="hero-desc">A modern, feature-rich Roblox UI library for script executors. Build beautiful interfaces with smooth animations, auto-configuration, and 18+ built-in elements.</p>
+    <p class="hero-desc">A modern, feature-rich Roblox UI library for script executors. Build beautiful interfaces with smooth animations, auto-configuration, and 19+ built-in elements.</p>
     <div class="hero-pills">
       <span class="pill">Single File</span>
       <span class="pill">No Dependencies</span>
       <span class="pill">Auto Config</span>
-      <span class="pill">18+ Elements</span>
+      <span class="pill">19+ Elements</span>
       <span class="pill">Notifications</span>
       <span class="pill">Color Themes</span>
     </div>
@@ -592,11 +592,11 @@
   <div class="doc-section" id="basic-setup">
     <div class="section-eyebrow">Getting Started</div>
     <h2 class="section-title">Basic Setup</h2>
-    <p class="section-lead">AtomUI uses a hierarchical structure: <strong>Window → Section → Tab → Group → Elements</strong>. Every UI starts with <code>atom_ui.new()</code>.</p>
+    <p class="section-lead">AtomUI uses a hierarchical structure: <strong>Window → Section → Tab → (SubTab →) Group → Elements</strong>. Every UI starts with <code>atom_ui.new()</code>.</p>
     <div class="steps">
       <div class="step"><div class="step-num">1</div><div class="step-content"><h4>Create a window</h4><p>Call <code>atom_ui.new()</code> with your config table.</p></div></div>
       <div class="step"><div class="step-num">2</div><div class="step-content"><h4>Add a section</h4><p>Sections appear as top-level nav items in the sidebar.</p></div></div>
-      <div class="step"><div class="step-num">3</div><div class="step-content"><h4>Add tabs &amp; groups</h4><p>Tabs organize content within a section; groups divide a tab into columns.</p></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><h4>Add tabs &amp; groups</h4><p>Tabs organize content within a section; groups divide a tab into two columns. Optionally add <strong>subtabs</strong> to a tab to create a second layer of navigation.</p></div></div>
       <div class="step"><div class="step-num">4</div><div class="step-content"><h4>Add elements</h4><p>Attach toggles, sliders, buttons, and more to any group.</p></div></div>
     </div>
     <div class="code-wrap">
@@ -658,6 +658,65 @@
   </div>
 
   <!-- CONFIGURATION -->
+  <div class="doc-section" id="subtabs">
+    <div class="section-eyebrow">Getting Started</div>
+    <h2 class="section-title">SubTabs</h2>
+    <p class="section-lead">SubTabs add a second layer of navigation <em>inside</em> a tab — rendered as a horizontal pill bar at the top of the tab's content area. They're part of the hierarchy, not an element.</p>
+
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <div>Once you call <code>tab:AddSubTab()</code> on a tab, that tab's direct columns are hidden and all content must go through subtab groups. Don't mix <code>tab:AddGroup()</code> and <code>tab:AddSubTab()</code> on the same tab.</div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Name</td><td>string</td><td>"SubTab"</td><td>Pill label text</td></tr>
+          <tr><td>Icon</td><td>string</td><td>nil</td><td>Optional lucide icon shown left of the label</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p style="margin:16px 0 8px;font-size:.875rem">The returned <strong>subTab object</strong> exposes:</p>
+    <div class="table-wrap" style="margin-bottom:20px">
+      <table>
+        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>subTab:AddGroup(config)</td><td>Add a group to this subtab — supports every element method</td></tr>
+          <tr><td>subTab:Activate()</td><td>Programmatically switch to this subtab</td></tr>
+          <tr><td>subTab:Deactivate()</td><td>Hide this subtab without activating another</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
+      <div class="code-body"><code><span class="kw">local</span> <span class="fn">tab</span> <span class="op">=</span> <span class="fn">section</span><span class="op">:</span><span class="fn">AddTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Settings"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"sliders"</span> <span class="op">})</span>
+
+<span class="cmt">-- each AddSubTab call adds a pill to the bar and returns a subTab object</span>
+<span class="kw">local</span> <span class="fn">general</span>  <span class="op">=</span> <span class="fn">tab</span><span class="op">:</span><span class="fn">AddSubTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"General"</span><span class="op">,</span>  <span class="key">Icon</span> <span class="op">=</span> <span class="str">"settings"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">visual</span>   <span class="op">=</span> <span class="fn">tab</span><span class="op">:</span><span class="fn">AddSubTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Visual"</span><span class="op">,</span>   <span class="key">Icon</span> <span class="op">=</span> <span class="str">"eye"</span>      <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">advanced</span> <span class="op">=</span> <span class="fn">tab</span><span class="op">:</span><span class="fn">AddSubTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Advanced"</span>              <span class="op">})</span>
+
+<span class="cmt">-- use subTab:AddGroup exactly like tab:AddGroup</span>
+<span class="kw">local</span> <span class="fn">g1</span> <span class="op">=</span> <span class="fn">general</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Core"</span><span class="op">,</span> <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"cpu"</span> <span class="op">})</span>
+<span class="fn">g1</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Enabled"</span><span class="op">,</span>   <span class="key">Default</span> <span class="op">=</span> <span class="bool">true</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">g1</span><span class="op">:</span><span class="fn">AddSlider</span><span class="op">({</span>  <span class="key">Name</span> <span class="op">=</span> <span class="str">"Intensity"</span><span class="op">,</span> <span class="key">Min</span> <span class="op">=</span> <span class="num">0</span><span class="op">,</span> <span class="key">Max</span> <span class="op">=</span> <span class="num">100</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="num">50</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+
+<span class="kw">local</span> <span class="fn">g2</span> <span class="op">=</span> <span class="fn">visual</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"ESP"</span><span class="op">,</span> <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"box"</span> <span class="op">})</span>
+<span class="fn">g2</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>     <span class="key">Name</span> <span class="op">=</span> <span class="str">"Box ESP"</span><span class="op">,</span>  <span class="key">Default</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span>                              <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">g2</span><span class="op">:</span><span class="fn">AddColorPicker</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Color"</span><span class="op">,</span>    <span class="key">Default</span> <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span><span class="num">0</span><span class="op">,</span><span class="num">0</span><span class="op">),</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>c<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+
+<span class="kw">local</span> <span class="fn">g3</span> <span class="op">=</span> <span class="fn">advanced</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Options"</span><span class="op">,</span> <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"zap"</span> <span class="op">})</span>
+<span class="fn">g3</span><span class="op">:</span><span class="fn">AddNumberInput</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Max Targets"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="num">5</span><span class="op">,</span> <span class="key">Min</span> <span class="op">=</span> <span class="num">1</span><span class="op">,</span> <span class="key">Max</span> <span class="op">=</span> <span class="num">50</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+
+<span class="cmt">-- switch programmatically</span>
+<span class="fn">visual</span><span class="op">:</span><span class="fn">Activate</span><span class="op">()</span></code></div>
+    </div>
+  </div>
+
+  <!-- CONFIGURATION -->
   <div class="doc-section" id="configuration">
     <div class="section-eyebrow">Getting Started</div>
     <h2 class="section-title">Configuration</h2>
@@ -686,7 +745,7 @@
   <div class="doc-section" id="elements">
     <div class="section-eyebrow">Elements</div>
     <h2 class="section-title">Element Library</h2>
-    <p class="section-lead">18+ built-in elements — all attached to a <code>Group</code> object.</p>
+    <p class="section-lead">19+ built-in elements — all attached to a <code>Group</code> object.</p>
     <div class="element-grid">
       <a href="#element-usage" class="element-card">
         <div class="el-icon">⊙</div>
@@ -762,6 +821,11 @@
         <div class="el-icon">◉</div>
         <div class="el-name">AddBadge</div>
         <div class="el-desc">Colored pill label for displaying status or metadata inline</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">⊞</div>
+        <div class="el-name">AddSubTab</div>
+        <div class="el-desc">Horizontal pill-bar sub-navigation inside a tab, each with its own groups and elements</div>
       </a>
     </div>
   </div>
@@ -1185,6 +1249,42 @@
         </div>
       </div>
 
+      <!-- AddSubTab -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">tab:AddSubTab(config)</span>
+          <span class="method-desc-short">Horizontal pill sub-navigation inside a tab</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <p style="font-size:.875rem;margin-bottom:12px">Renders a pill-bar row at the top of a tab's content area. Each subtab switches between its own groups and elements. Once you call <code>AddSubTab</code> on a tab, that tab's direct columns hide and subtab columns take over.</p>
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"SubTab"</td><td>Pill label text</td></tr>
+              <tr><td>Icon</td><td>string</td><td>nil</td><td>Optional lucide icon shown left of label</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Returns a <strong>subTab object</strong> with: <code>:AddGroup(config)</code> &nbsp;·&nbsp; <code>:Activate()</code> &nbsp;·&nbsp; <code>:Deactivate()</code></p>
+          <p style="margin-bottom:12px;font-size:.8rem;color:var(--muted)">Groups from <code>subTab:AddGroup()</code> support every element method — <code>AddToggle</code>, <code>AddSlider</code>, <code>AddDropdown</code>, etc.</p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">tab</span> <span class="op">=</span> <span class="fn">section</span><span class="op">:</span><span class="fn">AddTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Settings"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"sliders"</span> <span class="op">})</span>
+
+<span class="cmt">-- General subtab</span>
+<span class="kw">local</span> <span class="fn">general</span> <span class="op">=</span> <span class="fn">tab</span><span class="op">:</span><span class="fn">AddSubTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"General"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"settings"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">g1</span> <span class="op">=</span> <span class="fn">general</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Core"</span><span class="op">,</span> <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"cpu"</span> <span class="op">})</span>
+<span class="fn">g1</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Enabled"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="bool">true</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">g1</span><span class="op">:</span><span class="fn">AddSlider</span><span class="op">({</span>  <span class="key">Name</span> <span class="op">=</span> <span class="str">"Intensity"</span><span class="op">,</span> <span class="key">Min</span> <span class="op">=</span> <span class="num">0</span><span class="op">,</span> <span class="key">Max</span> <span class="op">=</span> <span class="num">100</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="num">50</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+
+<span class="cmt">-- Visual subtab</span>
+<span class="kw">local</span> <span class="fn">visual</span> <span class="op">=</span> <span class="fn">tab</span><span class="op">:</span><span class="fn">AddSubTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Visual"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"eye"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">g2</span> <span class="op">=</span> <span class="fn">visual</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"ESP"</span><span class="op">,</span> <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"box"</span> <span class="op">})</span>
+<span class="fn">g2</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>     <span class="key">Name</span> <span class="op">=</span> <span class="str">"Box ESP"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">g2</span><span class="op">:</span><span class="fn">AddColorPicker</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Color"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span><span class="num">0</span><span class="op">,</span><span class="num">0</span><span class="op">),</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>c<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+
+<span class="cmt">-- Programmatic switch</span>
+<span class="fn">general</span><span class="op">:</span><span class="fn">Activate</span><span class="op">()</span></code></div></div>
+        </div>
+      </div>
+
     </div>
   </div>
 
@@ -1438,7 +1538,7 @@
   <!-- FOOTER -->
   <div class="divider"></div>
   <div style="color:var(--muted);font-size:.8rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
-    <span>AtomUI v1.1 — Made by <strong style="color:var(--text)">von63rd and professionalflare</strong></span>
+    <span>AtomUI v1.1 — Made by <strong style="color:var(--text)">von63rd</strong></span>
     <span style="font-family:'IBM Plex Mono',monospace;font-size:.72rem">VoidDeveloper67/AtomUI</span>
   </div>
 
