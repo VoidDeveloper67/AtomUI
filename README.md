@@ -39,6 +39,7 @@ A modern, sleek, and highly customizable Roblox UI library built for executors. 
 | `AddProgressBar` | Animated fill bar for 0–1 values with optional percent label |
 | `AddNumberInput` | − / + stepper with optional Min, Max, and Step constraints |
 | `AddBadge` | Colored pill label for status or metadata |
+| `AddSubTab` | Horizontal pill sub-navigation inside a tab, each with its own groups and elements |
 
 ## Quick Start
 
@@ -293,6 +294,34 @@ ni:Set(25)   -- set value (clamped to Min/Max)
 ni:Get()     -- → number
 ```
 
+### AddSubTab
+
+Renders a horizontal pill bar at the top of a tab's content area. Each subtab has its own groups and elements. Once any subtab is added to a tab, that tab's direct columns are hidden and all content goes through subtab groups.
+
+```lua
+local tab = section:AddTab({ Name = "Settings", Icon = "sliders" })
+
+-- Create subtabs
+local general  = tab:AddSubTab({ Name = "General",  Icon = "settings" })
+local visual   = tab:AddSubTab({ Name = "Visual",   Icon = "eye" })
+local advanced = tab:AddSubTab({ Name = "Advanced" })
+
+-- Add groups and elements to each subtab
+local g1 = general:AddGroup({ Name = "Core", Side = "Left", Icon = "cpu" })
+g1:AddToggle({ Name = "Enabled",   Default = true,  Callback = function(v) end })
+g1:AddSlider({ Name = "Intensity", Min = 0, Max = 100, Default = 50, Callback = function(v) end })
+
+local g2 = visual:AddGroup({ Name = "ESP", Side = "Left", Icon = "box" })
+g2:AddToggle({     Name = "Box ESP", Default = false, Callback = function(v) end })
+g2:AddColorPicker({ Name = "Color",  Default = Color3.fromRGB(255, 0, 0), Callback = function(c) end })
+
+-- Programmatic control
+general:Activate()    -- switch to a subtab
+general:Deactivate()  -- hide a subtab (without activating another)
+```
+
+> **Note:** SubTab groups support every element method — `AddToggle`, `AddSlider`, `AddDropdown`, `AddColorPicker`, etc.
+
 ### AddBadge
 
 ```lua
@@ -338,7 +367,7 @@ Full documentation with interactive examples:
 
 ## Credits
 
-Made by **von63rd** and **professionalflare**
+Made by **von63rd** and **darkflareplays8**
 
 ## License
 
