@@ -367,7 +367,7 @@ Full documentation with interactive examples:
 
 ## Credits
 
-Made by **von63rd** and **darkflareplays8**
+Made by **von63rd** and **professionalflare**
 
 ## License
 
