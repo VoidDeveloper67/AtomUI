@@ -8161,12 +8161,14 @@ function atom_ui:AddSection(config)
         
         function tabObj:AddDiscordWidget(widgetConfig)
             widgetConfig = widgetConfig or {}
-            local serverId  = tostring(widgetConfig.ServerId  or "")
-            local invite    = tostring(widgetConfig.Invite    or "")
+            local invite    = tostring(widgetConfig.Invite or "")
             local embedW    = 540 * scale_factor
-            local embedH    = 88 * scale_factor
+            local embedH    = 96 * scale_factor
             local iconSize  = 56 * scale_factor
             local accentCol = tabObj.Library.config.AccentColor
+
+            -- extract invite code from full URL or bare code
+            local inviteCode = invite:match("discord%.gg/([%w%-]+)") or invite:match("discord%.com/invite/([%w%-]+)") or invite
 
             -- outer card
             local card = create("Frame", {
@@ -8180,8 +8182,8 @@ function atom_ui:AddSection(config)
             create("UICorner", {CornerRadius = UDim.new(0, 12), Parent = card})
             local cardStroke = create("UIStroke", {Color = Color3.fromRGB(40, 40, 44), Thickness = 1, Parent = card})
 
-            -- animated left accent bar
-            local accentBar = create("Frame", {
+            -- left accent bar
+            create("Frame", {
                 BackgroundColor3 = accentCol,
                 Position = UDim2.new(0, 0, 0, 0),
                 Size = UDim2.new(0, 3, 1, 0),
@@ -8190,7 +8192,7 @@ function atom_ui:AddSection(config)
                 Parent = card
             })
 
-            -- server icon placeholder (blinking while loading)
+            -- server icon
             local iconFrame = create("Frame", {
                 BackgroundColor3 = Color3.fromRGB(30, 30, 34),
                 Position = UDim2.new(0, 16 * scale_factor, 0.5, -iconSize / 2),
@@ -8209,7 +8211,6 @@ function atom_ui:AddSection(config)
                 Parent = iconFrame
             })
 
-            -- shimmer overlay on icon while loading
             local shimmer = create("Frame", {
                 BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                 BackgroundTransparency = 0.88,
@@ -8219,6 +8220,8 @@ function atom_ui:AddSection(config)
             })
             create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = shimmer})
 
+            local textOffsetX = 16 * scale_factor + iconSize + 14 * scale_factor
+
             -- server name
             local nameLabel = create("TextLabel", {
                 FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
@@ -8226,8 +8229,8 @@ function atom_ui:AddSection(config)
                 TextColor3 = Color3.fromRGB(200, 200, 205),
                 TextTransparency = 0.4,
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, 16 * scale_factor + iconSize + 14 * scale_factor, 0, 18 * scale_factor),
-                Size = UDim2.new(1, -(16 * scale_factor + iconSize + 28 * scale_factor + 90 * scale_factor), 0, 18 * scale_factor),
+                Position = UDim2.new(0, textOffsetX, 0, 16 * scale_factor),
+                Size = UDim2.new(1, -(textOffsetX + 90 * scale_factor), 0, 18 * scale_factor),
                 TextSize = 15 * scale_factor,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextTruncate = Enum.TextTruncate.AtEnd,
@@ -8235,11 +8238,25 @@ function atom_ui:AddSection(config)
                 Parent = card
             })
 
+            -- member count label (above online badge)
+            local memberLabel = create("TextLabel", {
+                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                Text = "",
+                TextColor3 = Color3.fromRGB(130, 130, 140),
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, textOffsetX, 0, 38 * scale_factor),
+                Size = UDim2.new(0, 140 * scale_factor, 0, 14 * scale_factor),
+                TextSize = 11 * scale_factor,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = 3,
+                Parent = card
+            })
+
             -- online badge
             local badgeFrame = create("Frame", {
                 BackgroundColor3 = Color3.fromRGB(28, 28, 32),
-                Position = UDim2.new(0, 16 * scale_factor + iconSize + 14 * scale_factor, 0, 42 * scale_factor),
-                Size = UDim2.new(0, 90 * scale_factor, 0, 20 * scale_factor),
+                Position = UDim2.new(0, textOffsetX, 0, 56 * scale_factor),
+                Size = UDim2.new(0, 96 * scale_factor, 0, 20 * scale_factor),
                 ZIndex = 3,
                 Parent = card
             })
@@ -8267,7 +8284,7 @@ function atom_ui:AddSection(config)
                 Parent = badgeFrame
             })
 
-            -- join button (right side)
+            -- join button
             local joinBtn = create("TextButton", {
                 FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
                 Text = "Join",
@@ -8284,20 +8301,23 @@ function atom_ui:AddSection(config)
             joinBtn.MouseButton1Click:Connect(function()
                 if invite ~= "" then
                     pcall(function() setclipboard(invite) end)
-                    local origText = joinBtn.Text
                     joinBtn.Text = "Copied!"
                     task.delay(1.5, function()
-                        if joinBtn and joinBtn.Parent then joinBtn.Text = origText end
+                        if joinBtn and joinBtn.Parent then joinBtn.Text = "Join" end
                     end)
                 end
             end)
-            joinBtn.MouseEnter:Connect(function() tween_to(joinBtn, {BackgroundColor3 = Color3.fromRGB(
-                math.clamp(accentCol.R * 255 + 20, 0, 255) / 255,
-                math.clamp(accentCol.G * 255 + 20, 0, 255) / 255,
-                math.clamp(accentCol.B * 255 + 20, 0, 255) / 255)}, 0.15) end)
-            joinBtn.MouseLeave:Connect(function() tween_to(joinBtn, {BackgroundColor3 = accentCol}, 0.15) end)
+            joinBtn.MouseEnter:Connect(function()
+                tween_to(joinBtn, {BackgroundColor3 = Color3.fromRGB(
+                    math.clamp(accentCol.R * 255 + 20, 0, 255) / 255,
+                    math.clamp(accentCol.G * 255 + 20, 0, 255) / 255,
+                    math.clamp(accentCol.B * 255 + 20, 0, 255) / 255)}, 0.15)
+            end)
+            joinBtn.MouseLeave:Connect(function()
+                tween_to(joinBtn, {BackgroundColor3 = accentCol}, 0.15)
+            end)
 
-            -- pulse shimmer animation while loading
+            -- shimmer pulse while loading
             local pulseRunning = true
             task.spawn(function()
                 while pulseRunning and shimmer and shimmer.Parent do
@@ -8309,51 +8329,46 @@ function atom_ui:AddSection(config)
                 end
             end)
 
-            -- update canvas size so the card is visible
-            local function update_canvas()
-                tabObj.content_scroll.CanvasSize = UDim2.new(0, embedW, 0,
-                    embedH + 12 * scale_factor + math.max(tabObj.group_offsets.Left, tabObj.group_offsets.Right))
-            end
-            update_canvas()
+            -- update canvas
+            tabObj.content_scroll.CanvasSize = UDim2.new(0, embedW, 0,
+                embedH + 12 * scale_factor + math.max(tabObj.group_offsets.Left, tabObj.group_offsets.Right))
 
-            -- fetch widget data
-            if serverId ~= "" then
-                task.spawn(function()
-                    local ok, result = pcall(function()
-                        local http = game:GetService("HttpService")
-                        local url = "https://discord.com/api/guilds/" .. serverId .. "/widget.json"
-                        local raw = http:GetAsync(url, true)
-                        return http:JSONDecode(raw)
-                    end)
+            local iconLoaded = false
+            local guildId = nil
 
-                    pulseRunning = false
-                    if shimmer and shimmer.Parent then
-                        tween_to(shimmer, {BackgroundTransparency = 1}, 0.3)
-                        task.delay(0.35, function() if shimmer and shimmer.Parent then shimmer:Destroy() end end)
-                    end
+            local function fetchAndUpdate()
+                local ok, result = pcall(function()
+                    local http = game:GetService("HttpService")
+                    local url = "https://discord.com/api/v9/invites/" .. inviteCode .. "?with_counts=true"
+                    local raw = http:GetAsync(url, true)
+                    return http:JSONDecode(raw)
+                end)
 
-                    if ok and result then
-                        local serverName    = tostring(result.name or "Unknown Server")
-                        local onlineCount   = tostring(result.presence_count or 0)
-                        local iconHash      = result.icon
+                if ok and result and result.guild then
+                    local guild       = result.guild
+                    local name        = tostring(guild.name or "Unknown Server")
+                    local members     = result.approximate_member_count or 0
+                    local online      = result.approximate_presence_count or 0
+                    local iconHash    = guild.icon
+                    guildId           = tostring(guild.id or "")
 
-                        -- animate name in
-                        nameLabel.Text = serverName
-                        tween_to(nameLabel, {TextTransparency = 0, TextColor3 = Color3.new(1, 1, 1)}, 0.4)
-                        onlineLabel.Text = onlineCount .. " online"
+                    nameLabel.Text = name
+                    tween_to(nameLabel, {TextTransparency = 0, TextColor3 = Color3.new(1, 1, 1)}, 0.4)
 
-                        -- load icon if available
+                    memberLabel.Text = tostring(members) .. " members"
+                    onlineLabel.Text = tostring(online) .. " online"
+
+                    if not iconLoaded then
+                        iconLoaded = true
                         if iconHash and iconHash ~= "" and iconHash ~= "null" then
-                            local imgUrl = "https://cdn.discordapp.com/icons/" .. serverId .. "/" .. iconHash .. ".png?size=128"
                             pcall(function()
-                                iconImg.Image = imgUrl
+                                iconImg.Image = "https://cdn.discordapp.com/icons/" .. guildId .. "/" .. iconHash .. ".png?size=128"
                                 tween_to(iconImg, {ImageTransparency = 0}, 0.4)
                             end)
                         else
-                            -- fallback: show first letter of server name
-                            local letterLabel = create("TextLabel", {
+                            create("TextLabel", {
                                 FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
-                                Text = string.upper(string.sub(serverName, 1, 1)),
+                                Text = string.upper(string.sub(name, 1, 1)),
                                 TextColor3 = Color3.new(1, 1, 1),
                                 BackgroundTransparency = 1,
                                 Size = UDim2.new(1, 0, 1, 0),
@@ -8361,29 +8376,44 @@ function atom_ui:AddSection(config)
                                 ZIndex = 4,
                                 Parent = iconFrame
                             })
-                            tween_to(letterLabel, {TextTransparency = 0}, 0.4)
                         end
-
-                        -- subtle card entrance
-                        card.BackgroundTransparency = 1
-                        tween_to(card, {BackgroundTransparency = 0}, 0.35)
-                        tween_to(cardStroke, {Transparency = 0}, 0.35)
-                    else
-                        nameLabel.Text = "Could not load server"
-                        nameLabel.TextColor3 = Color3.fromRGB(180, 80, 80)
-                        tween_to(nameLabel, {TextTransparency = 0}, 0.3)
-                        onlineLabel.Text = "widget disabled"
-                        onlineLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
-                        dot.BackgroundColor3 = Color3.fromRGB(130, 130, 130)
                     end
-                end)
+
+                    return true
+                end
+                return false
             end
+
+            -- initial fetch + stop shimmer
+            task.spawn(function()
+                local success = fetchAndUpdate()
+                pulseRunning = false
+                if shimmer and shimmer.Parent then
+                    tween_to(shimmer, {BackgroundTransparency = 1}, 0.3)
+                    task.delay(0.35, function()
+                        if shimmer and shimmer.Parent then shimmer:Destroy() end
+                    end)
+                end
+                if not success then
+                    nameLabel.Text = "Failed to load"
+                    nameLabel.TextColor3 = Color3.fromRGB(180, 80, 80)
+                    tween_to(nameLabel, {TextTransparency = 0}, 0.3)
+                    onlineLabel.Text = "check invite link"
+                    onlineLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
+                    dot.BackgroundColor3 = Color3.fromRGB(130, 130, 130)
+                end
+
+                -- poll every 5 minutes for live counts
+                while card and card.Parent do
+                    task.wait(300)
+                    if not card or not card.Parent then break end
+                    pcall(fetchAndUpdate)
+                end
+            end)
 
             return {
                 card = card,
-                SetServerId = function(self2, newId)
-                    serverId = tostring(newId)
-                end,
+                Refresh = function() pcall(fetchAndUpdate) end,
             }
         end
 
@@ -8739,8 +8769,7 @@ function atom_ui.Demo()
         Icon = "message-circle"
     })
     discord_tab:AddDiscordWidget({
-        ServerId = "1437918412444536955",
-        Invite   = "https://discord.gg/a926raHXvN"
+        Invite = "https://discord.gg/a926raHXvN"
     })
 
     local cfg_tab = settings_section:AddTab({
