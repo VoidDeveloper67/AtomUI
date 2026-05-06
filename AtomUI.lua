@@ -8341,8 +8341,11 @@ function atom_ui:AddSection(config)
                     local http = game:GetService("HttpService")
                     local url = "https://discord.com/api/v9/invites/" .. inviteCode .. "?with_counts=true"
                     local raw = http:GetAsync(url, true)
+                    print("[AtomUI Discord] raw response:", raw)
                     return http:JSONDecode(raw)
                 end)
+
+                print("[AtomUI Discord] ok:", ok, "result:", result and result.guild and result.guild.name or tostring(result))
 
                 if ok and result and result.guild then
                     local guild       = result.guild
