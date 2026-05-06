@@ -8769,7 +8769,7 @@ function atom_ui.Demo()
         Icon = "message-circle"
     })
     discord_tab:AddDiscordWidget({
-        Invite = "https://discord.gg/a926raHXvN"
+        Invite = "https://discord.gg/TbxXdAqfah"
     })
 
     local cfg_tab = settings_section:AddTab({
