@@ -8733,6 +8733,16 @@ function atom_ui.Demo()
     st_adv_left:AddNumberInput({Name = "Max Targets", Default = 5, Min = 1, Max = 50, Step = 1, Callback = function(v) print("[Demo] MaxTargets:", v) end})
     st_adv_left:AddBadge({Name = "Status", Value = "Active", Color = "green"})
 
+    local discord_tab = main_section:AddTab({
+        Name = "Discord",
+        Description = "Community server",
+        Icon = "message-circle"
+    })
+    discord_tab:AddDiscordWidget({
+        ServerId = "1437918412444536955",
+        Invite   = "https://discord.gg/a926raHXvN"
+    })
+
     local cfg_tab = settings_section:AddTab({
         Name = "Settings",
         Description = "Configuration",
