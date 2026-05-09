@@ -7865,6 +7865,7 @@ function atom_ui:AddSection(config)
             subTabConfig.Name = subTabConfig.Name or "SubTab"
             subTabConfig.Icon = subTabConfig.Icon and get_icon(subTabConfig.Icon, "") or nil
 
+            -- Create the subtab bar on first AddSubTab call (Obsidian-style horizontal tabs)
             if not tabObj._subtab_bar then
                 tabObj._subtab_bar = create("Frame", {
                     BackgroundTransparency = 1,
@@ -7874,6 +7875,7 @@ function atom_ui:AddSection(config)
                     ZIndex = 3,
                     Parent = tabObj.content_scroll
                 })
+                -- Bottom divider line
                 create("Frame", {
                     BackgroundColor3 = Color3.fromRGB(38, 38, 38),
                     Position = UDim2.new(0, 0, 1, -1),
@@ -7882,7 +7884,7 @@ function atom_ui:AddSection(config)
                     ZIndex = 4,
                     Parent = tabObj._subtab_bar
                 })
-                tabObj._subtab_next_x = 0
+                tabObj._subtab_next_x = 12 * scale_factor
                 tabObj.left_column.Position  = UDim2.new(0, 0, 0, tabObj._subtab_bar_height + 8 * scale_factor)
                 tabObj.right_column.Position = UDim2.new(0, 272 * scale_factor, 0, tabObj._subtab_bar_height + 8 * scale_factor)
             end
@@ -7896,11 +7898,11 @@ function atom_ui:AddSection(config)
 
             local barH = tabObj._subtab_bar_height
             local accentColor = sectionObj.Library.config.AccentColor
-            local padX = 14 * scale_factor
-            local iconSize = 13 * scale_factor
+            local padX = 16 * scale_factor
+            local iconSize = 14 * scale_factor
             local fontSize = 13 * scale_factor
 
-            -- measure text width with a temporary off-screen label
+            -- Measure text width
             local textW = 60 * scale_factor
             pcall(function()
                 local tmp = Instance.new("TextLabel")
@@ -7913,12 +7915,12 @@ function atom_ui:AddSection(config)
                 tmp:Destroy()
             end)
 
-            local iconW = (subTabConfig.Icon and subTabConfig.Icon ~= "") and (iconSize + 5 * scale_factor) or 0
+            local iconW = (subTabConfig.Icon and subTabConfig.Icon ~= "") and (iconSize + 6 * scale_factor) or 0
             local btnW = padX + iconW + textW + padX
-
             local currentX = tabObj._subtab_next_x
             tabObj._subtab_next_x = currentX + btnW
 
+            -- Obsidian-style tab button: clean text with underline, no pill background
             subTabObj.pill = create("TextButton", {
                 BackgroundTransparency = 1,
                 Position = UDim2.new(0, currentX, 0, 0),
@@ -7928,37 +7930,40 @@ function atom_ui:AddSection(config)
                 Parent = tabObj._subtab_bar
             })
 
-            local contentOffsetX = padX
+            -- Icon (if provided)
+            local textOffsetX = padX
             if subTabConfig.Icon and subTabConfig.Icon ~= "" then
                 subTabObj.pillIcon = create("ImageLabel", {
                     Image = subTabConfig.Icon,
-                    ImageColor3 = Color3.fromRGB(70, 70, 70),
+                    ImageColor3 = Color3.fromRGB(85, 85, 85),
                     BackgroundTransparency = 1,
-                    Position = UDim2.new(0, contentOffsetX, 0.5, -iconSize / 2),
+                    Position = UDim2.new(0, textOffsetX, 0.5, -iconSize / 2),
                     Size = UDim2.new(0, iconSize, 0, iconSize),
                     ZIndex = 5,
                     Parent = subTabObj.pill
                 })
-                contentOffsetX = contentOffsetX + iconSize + 5 * scale_factor
+                textOffsetX = textOffsetX + iconSize + 6 * scale_factor
             end
 
+            -- Tab label
             subTabObj.pillLabel = create("TextLabel", {
                 FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-                TextColor3 = Color3.fromRGB(70, 70, 70),
+                TextColor3 = Color3.fromRGB(85, 85, 85),
                 Text = subTabConfig.Name,
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, contentOffsetX, 0, 0),
-                Size = UDim2.new(0, textW, 1, -3),
+                Position = UDim2.new(0, textOffsetX, 0, 0),
+                Size = UDim2.new(0, textW, 1, -4),
                 TextSize = fontSize,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 ZIndex = 5,
                 Parent = subTabObj.pill
             })
 
+            -- Active underline indicator (accent color, slides under active tab)
             subTabObj.underline = create("Frame", {
                 BackgroundColor3 = accentColor,
                 Position = UDim2.new(0, padX, 1, -2),
-                Size = UDim2.new(0, btnW - padX * 2, 0, 2),
+                Size = UDim2.new(0, 0, 0, 2), -- starts invisible, tweened on activate
                 BorderSizePixel = 0,
                 BackgroundTransparency = 1,
                 ZIndex = 5,
@@ -7966,6 +7971,7 @@ function atom_ui:AddSection(config)
             })
             create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = subTabObj.underline})
 
+            -- Subtab columns
             subTabObj.left_column = create("Frame", {
                 BackgroundTransparency = 1,
                 Position = UDim2.new(0, 0, 0, barH + 8 * scale_factor),
@@ -8005,11 +8011,12 @@ function atom_ui:AddSection(config)
                 end
                 tabObj.active_subtab = subTabObj
                 subTabObj.isActive = true
-                subTabObj.left_column.Visible  = true
+                subTabObj.left_column.Visible = true
                 subTabObj.right_column.Visible = true
-                tabObj.left_column.Visible  = false
+                tabObj.left_column.Visible = false
                 tabObj.right_column.Visible = false
-                tween_to(subTabObj.underline, {BackgroundTransparency = 0}, 0.18)
+                -- Obsidian-style: show underline, brighten text to white
+                tween_to(subTabObj.underline, {Size = UDim2.new(0, btnW - padX * 2, 0, 2), BackgroundTransparency = 0}, 0.18)
                 tween_to(subTabObj.pillLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.18)
                 if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.18) end
                 relayout_subtab_groups()
@@ -8017,11 +8024,12 @@ function atom_ui:AddSection(config)
 
             function subTabObj:Deactivate()
                 subTabObj.isActive = false
-                subTabObj.left_column.Visible  = false
+                subTabObj.left_column.Visible = false
                 subTabObj.right_column.Visible = false
-                tween_to(subTabObj.underline, {BackgroundTransparency = 1}, 0.15)
-                tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(70, 70, 70)}, 0.15)
-                if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(70, 70, 70)}, 0.15) end
+                -- Hide underline, dim text back to gray
+                tween_to(subTabObj.underline, {Size = UDim2.new(0, 0, 0, 2), BackgroundTransparency = 1}, 0.15)
+                tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(85, 85, 85)}, 0.15)
+                if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(85, 85, 85)}, 0.15) end
             end
 
             subTabObj.pill.MouseButton1Click:Connect(function()
@@ -8029,17 +8037,18 @@ function atom_ui:AddSection(config)
             end)
             subTabObj.pill.MouseEnter:Connect(function()
                 if not subTabObj.isActive then
-                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(160, 160, 160)}, 0.12)
-                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(160, 160, 160)}, 0.12) end
+                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(170, 170, 170)}, 0.12)
+                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(170, 170, 170)}, 0.12) end
                 end
             end)
             subTabObj.pill.MouseLeave:Connect(function()
                 if not subTabObj.isActive then
-                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(70, 70, 70)}, 0.12)
-                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(70, 70, 70)}, 0.12) end
+                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(85, 85, 85)}, 0.12)
+                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(85, 85, 85)}, 0.12) end
                 end
             end)
 
+            -- AddGroup for subtab
             function subTabObj:AddGroup(stGroupConfig)
                 stGroupConfig = stGroupConfig or {}
                 stGroupConfig.Name = stGroupConfig.Name or "Group"
@@ -8099,9 +8108,7 @@ function atom_ui:AddSection(config)
                     relayout_subtab_groups()
                 end
 
-                -- Borrow element Add* methods from tabObj:AddGroup by temporarily
-                -- pointing tabObj's columns at the subtab columns and setting a
-                -- relayout override so update_group_size calls relayout_subtab_groups.
+                -- Borrow element Add* methods from tabObj:AddGroup
                 local _sl = tabObj.left_column
                 local _sr = tabObj.right_column
                 local _sg = tabObj.groups
@@ -8121,8 +8128,7 @@ function atom_ui:AddSection(config)
                 tabObj.group_offsets      = _so
                 tabObj._relayout_override = nil
 
-                -- AddGroup already inserted borrowed into subTabObj.groups via the swap;
-                -- remove it so we control insertion order below
+                -- AddGroup already inserted borrowed; remove to control insertion order
                 for i = #subTabObj.groups, 1, -1 do
                     if subTabObj.groups[i] == borrowed then
                         table.remove(subTabObj.groups, i)
@@ -8162,15 +8168,15 @@ function atom_ui:AddSection(config)
         function tabObj:AddDiscordWidget(widgetConfig)
             widgetConfig = widgetConfig or {}
             local invite    = tostring(widgetConfig.Invite or "")
-            local embedW    = 540 * scale_factor
-            local embedH    = 96 * scale_factor
-            local iconSize  = 56 * scale_factor
+            local embedW    = tabObj.content_scroll.AbsoluteSize.X > 0 and tabObj.content_scroll.AbsoluteSize.X or (540 * scale_factor)
+            local embedH    = 110 * scale_factor
+            local iconSize  = 60 * scale_factor
             local accentCol = tabObj.Library.config.AccentColor
 
-            -- extract invite code from full URL or bare code
+            -- Extract invite code from full URL or bare code
             local inviteCode = invite:match("discord%.gg/([%w%-]+)") or invite:match("discord%.com/invite/([%w%-]+)") or invite
 
-            -- outer card
+            -- Modern card container
             local card = create("Frame", {
                 BackgroundColor3 = Color3.fromRGB(20, 20, 22),
                 Position = UDim2.new(0, 0, 0, 0),
@@ -8179,28 +8185,47 @@ function atom_ui:AddSection(config)
                 ZIndex = 2,
                 Parent = tabObj.content_scroll
             })
-            create("UICorner", {CornerRadius = UDim.new(0, 12), Parent = card})
-            local cardStroke = create("UIStroke", {Color = Color3.fromRGB(40, 40, 44), Thickness = 1, Parent = card})
+            create("UICorner", {CornerRadius = UDim.new(0, 14), Parent = card})
+            local cardStroke = create("UIStroke", {
+                Color = Color3.fromRGB(44, 44, 48),
+                Thickness = 1,
+                Parent = card
+            })
 
-            -- left accent bar
-            create("Frame", {
+            -- Subtle top gradient line
+            local topLine = create("Frame", {
                 BackgroundColor3 = accentCol,
+                BackgroundTransparency = 0.35,
                 Position = UDim2.new(0, 0, 0, 0),
-                Size = UDim2.new(0, 3, 1, 0),
+                Size = UDim2.new(1, 0, 0, 2),
                 BorderSizePixel = 0,
                 ZIndex = 3,
                 Parent = card
             })
+            create("UIGradient", {
+                Color = ColorSequence.new({
+                    ColorSequenceKeypoint.new(0, accentCol),
+                    ColorSequenceKeypoint.new(0.5, Color3.new(1,1,1)),
+                    ColorSequenceKeypoint.new(1, accentCol)
+                }),
+                Rotation = 0,
+                Parent = topLine
+            })
 
-            -- server icon
+            -- Server icon with circular mask
             local iconFrame = create("Frame", {
-                BackgroundColor3 = Color3.fromRGB(30, 30, 34),
-                Position = UDim2.new(0, 16 * scale_factor, 0.5, -iconSize / 2),
+                BackgroundColor3 = Color3.fromRGB(32, 32, 36),
+                Position = UDim2.new(0, 18 * scale_factor, 0.5, -iconSize / 2),
                 Size = UDim2.new(0, iconSize, 0, iconSize),
                 ZIndex = 3,
                 Parent = card
             })
-            create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = iconFrame})
+            create("UICorner", {CornerRadius = UDim.new(0, 14), Parent = iconFrame})
+            create("UIStroke", {
+                Color = Color3.fromRGB(50, 50, 55),
+                Thickness = 1,
+                Parent = iconFrame
+            })
 
             local iconImg = create("ImageLabel", {
                 BackgroundTransparency = 1,
@@ -8210,7 +8235,9 @@ function atom_ui:AddSection(config)
                 ZIndex = 4,
                 Parent = iconFrame
             })
+            create("UICorner", {CornerRadius = UDim.new(0, 14), Parent = iconImg})
 
+            -- Shimmer loading effect
             local shimmer = create("Frame", {
                 BackgroundColor3 = Color3.fromRGB(255, 255, 255),
                 BackgroundTransparency = 0.88,
@@ -8218,85 +8245,108 @@ function atom_ui:AddSection(config)
                 ZIndex = 5,
                 Parent = iconFrame
             })
-            create("UICorner", {CornerRadius = UDim.new(0, 10), Parent = shimmer})
+            create("UICorner", {CornerRadius = UDim.new(0, 14), Parent = shimmer})
 
-            local textOffsetX = 16 * scale_factor + iconSize + 14 * scale_factor
+            -- Text layout calculations
+            local textOffsetX = 18 * scale_factor + iconSize + 16 * scale_factor
 
-            -- server name
+            -- Server name
             local nameLabel = create("TextLabel", {
                 FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
                 Text = "Loading...",
                 TextColor3 = Color3.fromRGB(200, 200, 205),
                 TextTransparency = 0.4,
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, textOffsetX, 0, 16 * scale_factor),
-                Size = UDim2.new(1, -(textOffsetX + 90 * scale_factor), 0, 18 * scale_factor),
-                TextSize = 15 * scale_factor,
+                Position = UDim2.new(0, textOffsetX, 0, 18 * scale_factor),
+                Size = UDim2.new(1, -(textOffsetX + 100 * scale_factor), 0, 20 * scale_factor),
+                TextSize = 16 * scale_factor,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 TextTruncate = Enum.TextTruncate.AtEnd,
                 ZIndex = 3,
                 Parent = card
             })
 
-            -- member count label (above online badge)
-            local memberLabel = create("TextLabel", {
-                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-                Text = "",
-                TextColor3 = Color3.fromRGB(130, 130, 140),
+            -- Member count row
+            local memberRow = create("Frame", {
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, textOffsetX, 0, 38 * scale_factor),
-                Size = UDim2.new(0, 140 * scale_factor, 0, 14 * scale_factor),
-                TextSize = 11 * scale_factor,
-                TextXAlignment = Enum.TextXAlignment.Left,
+                Position = UDim2.new(0, textOffsetX, 0, 42 * scale_factor),
+                Size = UDim2.new(0, 200 * scale_factor, 0, 18 * scale_factor),
                 ZIndex = 3,
                 Parent = card
             })
 
-            -- online badge
-            local badgeFrame = create("Frame", {
-                BackgroundColor3 = Color3.fromRGB(28, 28, 32),
-                Position = UDim2.new(0, textOffsetX, 0, 56 * scale_factor),
-                Size = UDim2.new(0, 96 * scale_factor, 0, 20 * scale_factor),
-                ZIndex = 3,
-                Parent = card
-            })
-            create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = badgeFrame})
-
-            local dot = create("Frame", {
+            -- Online dot
+            local onlineDot = create("Frame", {
                 BackgroundColor3 = Color3.fromRGB(59, 165, 93),
-                Position = UDim2.new(0, 8 * scale_factor, 0.5, -4 * scale_factor),
-                Size = UDim2.new(0, 8 * scale_factor, 0, 8 * scale_factor),
+                Position = UDim2.new(0, 0, 0.5, -5 * scale_factor),
+                Size = UDim2.new(0, 9 * scale_factor, 0, 9 * scale_factor),
                 ZIndex = 4,
-                Parent = badgeFrame
+                Parent = memberRow
             })
-            create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = dot})
+            create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = onlineDot})
 
+            -- Online count
             local onlineLabel = create("TextLabel", {
                 FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
                 Text = "— online",
-                TextColor3 = Color3.fromRGB(59, 165, 93),
+                TextColor3 = Color3.fromRGB(180, 180, 185),
                 BackgroundTransparency = 1,
-                Position = UDim2.new(0, 20 * scale_factor, 0, 0),
-                Size = UDim2.new(1, -24 * scale_factor, 1, 0),
-                TextSize = 11 * scale_factor,
+                Position = UDim2.new(0, 14 * scale_factor, 0, 0),
+                Size = UDim2.new(0, 70 * scale_factor, 1, 0),
+                TextSize = 12 * scale_factor,
                 TextXAlignment = Enum.TextXAlignment.Left,
                 ZIndex = 4,
-                Parent = badgeFrame
+                Parent = memberRow
             })
 
-            -- join button
+            -- Member count
+            local memberLabel = create("TextLabel", {
+                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+                Text = "",
+                TextColor3 = Color3.fromRGB(120, 120, 130),
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, 90 * scale_factor, 0, 0),
+                Size = UDim2.new(0, 100 * scale_factor, 1, 0),
+                TextSize = 12 * scale_factor,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = 4,
+                Parent = memberRow
+            })
+
+            -- Invite link label
+            local inviteLabel = create("TextLabel", {
+                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Regular),
+                Text = invite ~= "" and ("discord.gg/" .. inviteCode) or "",
+                TextColor3 = Color3.fromRGB(80, 80, 90),
+                BackgroundTransparency = 1,
+                Position = UDim2.new(0, textOffsetX, 0, 62 * scale_factor),
+                Size = UDim2.new(0, 200 * scale_factor, 0, 14 * scale_factor),
+                TextSize = 11 * scale_factor,
+                TextXAlignment = Enum.TextXAlignment.Left,
+                ZIndex = 3,
+                Parent = card
+            })
+
+            -- Modern Join button
             local joinBtn = create("TextButton", {
                 FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.Bold),
                 Text = "Join",
                 TextColor3 = Color3.new(1, 1, 1),
                 BackgroundColor3 = accentCol,
-                Position = UDim2.new(1, -90 * scale_factor, 0.5, -14 * scale_factor),
-                Size = UDim2.new(0, 74 * scale_factor, 0, 28 * scale_factor),
-                TextSize = 13 * scale_factor,
+                Position = UDim2.new(1, -86 * scale_factor, 0.5, -16 * scale_factor),
+                Size = UDim2.new(0, 72 * scale_factor, 0, 32 * scale_factor),
+                TextSize = 14 * scale_factor,
                 ZIndex = 3,
                 Parent = card
             })
             create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = joinBtn})
+
+            -- Join button hover effects
+            local joinBtnStroke = create("UIStroke", {
+                Color = accentCol:Lerp(Color3.new(1,1,1), 0.25),
+                Thickness = 1,
+                Parent = joinBtn
+            })
 
             joinBtn.MouseButton1Click:Connect(function()
                 if invite ~= "" then
@@ -8309,15 +8359,18 @@ function atom_ui:AddSection(config)
             end)
             joinBtn.MouseEnter:Connect(function()
                 tween_to(joinBtn, {BackgroundColor3 = Color3.fromRGB(
-                    math.clamp(accentCol.R * 255 + 20, 0, 255) / 255,
-                    math.clamp(accentCol.G * 255 + 20, 0, 255) / 255,
-                    math.clamp(accentCol.B * 255 + 20, 0, 255) / 255)}, 0.15)
+                    math.clamp(accentCol.R * 255 + 25, 0, 255),
+                    math.clamp(accentCol.G * 255 + 25, 0, 255),
+                    math.clamp(accentCol.B * 255 + 25, 0, 255)
+                )}, 0.15)
+                tween_to(joinBtnStroke, {Color = Color3.fromRGB(255,255,255)}, 0.15)
             end)
             joinBtn.MouseLeave:Connect(function()
                 tween_to(joinBtn, {BackgroundColor3 = accentCol}, 0.15)
+                tween_to(joinBtnStroke, {Color = accentCol:Lerp(Color3.new(1,1,1), 0.25)}, 0.15)
             end)
 
-            -- shimmer pulse while loading
+            -- Shimmer pulse while loading
             local pulseRunning = true
             task.spawn(function()
                 while pulseRunning and shimmer and shimmer.Parent do
@@ -8329,8 +8382,8 @@ function atom_ui:AddSection(config)
                 end
             end)
 
-            -- update canvas
-            tabObj.content_scroll.CanvasSize = UDim2.new(0, embedW, 0,
+            -- Update canvas size with proper content width
+            tabObj.content_scroll.CanvasSize = UDim2.new(0, tabObj.content_scroll.AbsoluteSize.X > 0 and tabObj.content_scroll.AbsoluteSize.X or embedW, 0,
                 embedH + 12 * scale_factor + math.max(tabObj.group_offsets.Left, tabObj.group_offsets.Right))
 
             local iconLoaded = false
@@ -8341,11 +8394,8 @@ function atom_ui:AddSection(config)
                     local http = game:GetService("HttpService")
                     local url = "https://discord.com/api/v9/invites/" .. inviteCode .. "?with_counts=true"
                     local raw = http:GetAsync(url, true)
-                    print("[AtomUI Discord] raw response:", raw)
                     return http:JSONDecode(raw)
                 end)
-
-                print("[AtomUI Discord] ok:", ok, "result:", result and result.guild and result.guild.name or tostring(result))
 
                 if ok and result and result.guild then
                     local guild       = result.guild
@@ -8375,7 +8425,7 @@ function atom_ui:AddSection(config)
                                 TextColor3 = Color3.new(1, 1, 1),
                                 BackgroundTransparency = 1,
                                 Size = UDim2.new(1, 0, 1, 0),
-                                TextSize = 22 * scale_factor,
+                                TextSize = 24 * scale_factor,
                                 ZIndex = 4,
                                 Parent = iconFrame
                             })
@@ -8387,7 +8437,7 @@ function atom_ui:AddSection(config)
                 return false
             end
 
-            -- initial fetch + stop shimmer
+            -- Initial fetch + stop shimmer
             task.spawn(function()
                 local success = fetchAndUpdate()
                 pulseRunning = false
@@ -8398,15 +8448,24 @@ function atom_ui:AddSection(config)
                     end)
                 end
                 if not success then
-                    nameLabel.Text = "Failed to load"
-                    nameLabel.TextColor3 = Color3.fromRGB(180, 80, 80)
+                    -- Graceful fallback: check if HttpService is available
+                    local hasHttp = pcall(function()
+                        return game:GetService("HttpService")
+                    end)
+                    if not hasHttp then
+                        nameLabel.Text = "HTTP unavailable"
+                        nameLabel.TextColor3 = Color3.fromRGB(160, 140, 80)
+                    else
+                        nameLabel.Text = "Failed to load"
+                        nameLabel.TextColor3 = Color3.fromRGB(180, 80, 80)
+                    end
                     tween_to(nameLabel, {TextTransparency = 0}, 0.3)
                     onlineLabel.Text = "check invite link"
                     onlineLabel.TextColor3 = Color3.fromRGB(140, 140, 140)
-                    dot.BackgroundColor3 = Color3.fromRGB(130, 130, 130)
+                    onlineDot.BackgroundColor3 = Color3.fromRGB(130, 130, 130)
                 end
 
-                -- poll every 5 minutes for live counts
+                -- Poll every 5 minutes for live counts
                 while card and card.Parent do
                     task.wait(300)
                     if not card or not card.Parent then break end
@@ -8744,7 +8803,7 @@ function atom_ui.Demo()
 
     local settings_section = lib:AddSection({Name = "Config", Icon = "settings"})
 
-    -- SubTab demo
+    -- SubTab demo (Obsidian-style horizontal tabs)
     local sub_tab = main_section:AddTab({
         Name = "SubTabs",
         Description = "SubTab demo",
