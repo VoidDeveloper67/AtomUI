@@ -94,6 +94,27 @@ atom_ui.new({
 | `ShowAutoSaveToggle` | boolean | `true` | Show auto-save toggle in settings |
 | `UseConfigSystem` | boolean | `true` | Enable the config UI tab |
 | `Watermark` | string | `nil` | Watermark text overlay |
+| `CustomBackground` | boolean | `false` | Enable custom background image |
+| `BackgroundImage` | string | `nil` | rbxassetid:// URL for background |
+| `BackgroundTransparency` | number | `0.3` | Background image transparency |
+| `BackgroundTint` | Color3 | `nil` | Color tint for background |
+| `BackgroundBlur` | boolean | `true` | Show blur overlay behind UI |
+| `SpinningLogo` | boolean | `true` | Spin animation on floating toggle |
+
+## Custom Background Example
+
+```lua
+atom_ui.new({
+    Name = "My Hub",
+    AccentColor = Color3.fromRGB(2, 133, 255),
+    CustomBackground = true,
+    BackgroundImage = "rbxassetid://12345678",
+    BackgroundTransparency = 0.3,
+    BackgroundTint = Color3.fromRGB(255, 255, 255),
+    BackgroundBlur = true,
+    SpinningLogo = true,
+})
+```
 
 ## Library Methods
 
@@ -217,7 +238,7 @@ group:AddKeybindToggle({
 ```lua
 local ti = group:AddTextInput({
     Name        = "Webhook URL",
-    Placeholder = "https://discord.com/api/webhooks/...",
+    Placeholder = "https://your-webhook-url...",
     Default     = "",
     Flag        = "webhook_url",
     Callback    = function(text, enterPressed) print(text) end
@@ -367,7 +388,7 @@ Full documentation with interactive examples:
 
 ## Credits
 
-Made by **von63rd** and **professionalflare**
+Made by **von63rd**
 
 ## License
 
