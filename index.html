@@ -1,447 +1,1563 @@
-A AtomUI
-v1.1
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AtomUI v1.1 — Documentation</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,500;0,600;1,400&family=Syne:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;1,9..40,300&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --bg:        #0c0d10;
+    --surface:   #111318;
+    --surface2:  #181b22;
+    --border:    #1f2330;
+    --border2:   #262b3a;
+    --accent:    #0285ff;
+    --accent-lo: rgba(2,133,255,.12);
+    --accent-glow: rgba(2,133,255,.25);
+    --text:      #e2e6f0;
+    --muted:     #6b7280;
+    --muted2:    #4b5263;
+    --green:     #22c55e;
+    --yellow:    #f59e0b;
+    --red:       #ef4444;
+    --purple:    #a78bfa;
+    --sidebar-w: 260px;
+    --header-h:  52px;
+  }
+  *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth;font-size:15px}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'DM Sans',sans-serif;
+    font-weight:300;
+    line-height:1.7;
+    min-height:100vh;
+    overflow-x:hidden;
+  }
 
-Guide
-Elements
-API
-Config
-Notifs
-Examples
+  /* ── scrollbar ── */
+  ::-webkit-scrollbar{width:5px;height:5px}
+  ::-webkit-scrollbar-track{background:transparent}
+  ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:99px}
 
-GitHub
-INTRODUCTION
+  /* ── HEADER ── */
+  header{
+    position:fixed;top:0;left:0;right:0;
+    height:var(--header-h);
+    background:rgba(12,13,16,.85);
+    backdrop-filter:blur(16px);
+    border-bottom:1px solid var(--border);
+    display:flex;align-items:center;
+    padding:0 20px;
+    z-index:100;
+    gap:16px;
+  }
+  .logo{
+    display:flex;align-items:center;gap:10px;
+    text-decoration:none;color:var(--text);
+    font-family:'Syne',sans-serif;
+    font-weight:700;font-size:1rem;
+    letter-spacing:-.01em;
+    flex-shrink:0;
+  }
+  .logo-icon{
+    width:28px;height:28px;
+    background:var(--accent);
+    border-radius:7px;
+    display:flex;align-items:center;justify-content:center;
+    font-size:.65rem;font-weight:800;color:#fff;
+    font-family:'IBM Plex Mono',monospace;
+    letter-spacing:0;
+    box-shadow:0 0 12px var(--accent-glow);
+  }
+  .logo-version{
+    font-size:.7rem;font-weight:400;
+    color:var(--muted);
+    font-family:'IBM Plex Mono',monospace;
+    background:var(--surface2);
+    border:1px solid var(--border2);
+    padding:1px 7px;border-radius:99px;
+  }
+  .header-spacer{flex:1}
+  .header-links{display:flex;align-items:center;gap:6px}
+  .header-links a{
+    font-size:.8rem;color:var(--muted);
+    text-decoration:none;
+    padding:5px 10px;border-radius:6px;
+    transition:color .15s,background .15s;
+  }
+  .header-links a:hover{color:var(--text);background:var(--surface2)}
+  .gh-btn{
+    display:flex;align-items:center;gap:6px;
+    background:var(--surface2);
+    border:1px solid var(--border2);
+    color:var(--text);
+    font-size:.8rem;font-weight:500;
+    padding:5px 12px;border-radius:7px;
+    text-decoration:none;
+    transition:border-color .15s,background .15s;
+  }
+  .gh-btn:hover{border-color:var(--accent);background:var(--accent-lo)}
+  .gh-btn svg{opacity:.7}
 
-Overview
+  /* ── SIDEBAR ── */
+  .sidebar{
+    position:fixed;
+    top:var(--header-h);left:0;bottom:0;
+    width:var(--sidebar-w);
+    background:var(--surface);
+    border-right:1px solid var(--border);
+    overflow-y:auto;
+    padding:24px 0 40px;
+    z-index:50;
+  }
+  .sidebar-section{margin-bottom:8px}
+  .sidebar-label{
+    font-size:.68rem;
+    font-weight:600;
+    letter-spacing:.1em;
+    text-transform:uppercase;
+    color:var(--muted);
+    padding:6px 20px;
+    font-family:'Syne',sans-serif;
+  }
+  .sidebar-item{
+    display:flex;align-items:center;gap:8px;
+    padding:6px 20px;
+    font-size:.85rem;
+    color:var(--muted);
+    text-decoration:none;
+    border-left:2px solid transparent;
+    transition:color .12s,border-color .12s,background .12s;
+    cursor:pointer;
+  }
+  .sidebar-item:hover{color:var(--text);background:var(--surface2)}
+  .sidebar-item.active{
+    color:var(--accent);
+    border-left-color:var(--accent);
+    background:var(--accent-lo);
+    font-weight:500;
+  }
+  .sidebar-item .dot{
+    width:5px;height:5px;
+    border-radius:50%;
+    background:var(--border2);
+    flex-shrink:0;
+  }
+  .sidebar-item.active .dot{background:var(--accent)}
 
-Requirements
-GETTING STARTED
+  /* ── MAIN CONTENT ── */
+  .main{
+    margin-left:var(--sidebar-w);
+    padding-top:calc(var(--header-h) + 48px);
+    padding-bottom:120px;
+    padding-right:40px;
+    padding-left:64px;
+    max-width:860px;
+  }
 
-Installation
+  /* ── SECTIONS ── */
+  .doc-section{
+    margin-bottom:80px;
+    scroll-margin-top:calc(var(--header-h) + 24px);
+  }
+  .section-eyebrow{
+    font-size:.7rem;
+    font-weight:600;
+    letter-spacing:.12em;
+    text-transform:uppercase;
+    color:var(--accent);
+    font-family:'IBM Plex Mono',monospace;
+    margin-bottom:10px;
+  }
+  .section-title{
+    font-family:'Syne',sans-serif;
+    font-size:1.75rem;
+    font-weight:700;
+    color:#fff;
+    letter-spacing:-.02em;
+    margin-bottom:14px;
+    line-height:1.2;
+  }
+  .section-lead{
+    color:#9ca3b0;
+    font-size:.95rem;
+    line-height:1.75;
+    margin-bottom:28px;
+    max-width:640px;
+  }
 
-Basic Setup
+  /* ── HERO ── */
+  .hero{
+    margin-bottom:64px;
+    scroll-margin-top:calc(var(--header-h) + 24px);
+  }
+  .hero-badge{
+    display:inline-flex;align-items:center;gap:6px;
+    background:var(--accent-lo);
+    border:1px solid rgba(2,133,255,.3);
+    color:var(--accent);
+    font-size:.72rem;
+    font-family:'IBM Plex Mono',monospace;
+    font-weight:500;
+    padding:3px 10px;border-radius:99px;
+    margin-bottom:20px;
+  }
+  .hero-badge::before{content:'●';font-size:.5rem;animation:pulse 2s ease-in-out infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+  .hero-title{
+    font-family:'Syne',sans-serif;
+    font-size:2.8rem;
+    font-weight:800;
+    color:#fff;
+    letter-spacing:-.04em;
+    line-height:1.1;
+    margin-bottom:16px;
+  }
+  .hero-title span{color:var(--accent)}
+  .hero-desc{
+    color:#9ca3b0;
+    font-size:1rem;
+    line-height:1.8;
+    max-width:580px;
+    margin-bottom:28px;
+  }
+  .hero-pills{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:32px}
+  .pill{
+    background:var(--surface2);
+    border:1px solid var(--border2);
+    color:var(--muted);
+    font-size:.75rem;
+    padding:4px 11px;border-radius:99px;
+    font-family:'IBM Plex Mono',monospace;
+  }
+  .hero-divider{
+    height:1px;
+    background:linear-gradient(90deg,var(--border) 0%,transparent 100%);
+  }
 
-Quick Start
+  /* ── CODE BLOCKS ── */
+  .code-wrap{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    margin:18px 0;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.8rem;
+    line-height:1.7;
+  }
+  .code-header{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:9px 16px;
+    border-bottom:1px solid var(--border);
+    background:var(--surface2);
+  }
+  .code-lang{
+    font-size:.68rem;
+    color:var(--muted);
+    font-weight:500;
+    letter-spacing:.05em;
+    text-transform:uppercase;
+  }
+  .copy-btn{
+    background:none;border:none;cursor:pointer;
+    color:var(--muted);font-size:.72rem;
+    font-family:'DM Sans',sans-serif;
+    display:flex;align-items:center;gap:5px;
+    padding:2px 8px;border-radius:5px;
+    transition:color .12s,background .12s;
+  }
+  .copy-btn:hover{color:var(--text);background:var(--border)}
+  .copy-btn.copied{color:var(--green)}
+  .code-body{padding:18px 20px;overflow-x:auto}
+  .code-body code{display:block;white-space:pre}
 
-Configuration
-ELEMENTS
+  /* syntax */
+  .kw{color:#60a5fa}
+  .fn{color:#93c5fd}
+  .str{color:#86efac}
+  .num{color:#fca5a5}
+  .cmt{color:#4b5563;font-style:italic}
+  .key{color:#c4b5fd}
+  .op{color:#94a3b8}
+  .bool{color:#fb923c}
 
-Overview
+  /* ── INLINE CODE ── */
+  code:not(.code-body code){
+    background:var(--surface2);
+    border:1px solid var(--border2);
+    color:#93c5fd;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.8rem;
+    padding:1px 6px;border-radius:4px;
+  }
 
-Usage Examples
-API REFERENCE
+  /* ── CALLOUTS ── */
+  .callout{
+    display:flex;gap:14px;
+    padding:14px 18px;
+    border-radius:9px;
+    border:1px solid;
+    margin:20px 0;
+    font-size:.875rem;
+    line-height:1.6;
+  }
+  .callout-icon{font-size:1rem;flex-shrink:0;margin-top:1px}
+  .callout.tip{background:rgba(2,133,255,.07);border-color:rgba(2,133,255,.25);color:#93c5fd}
+  .callout.note{background:rgba(167,139,250,.07);border-color:rgba(167,139,250,.25);color:#c4b5fd}
+  .callout.warn{background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.25);color:#fbbf24}
 
-Library Methods
+  /* ── TABLES ── */
+  .table-wrap{
+    overflow-x:auto;
+    border:1px solid var(--border);
+    border-radius:10px;
+    margin:20px 0;
+  }
+  table{width:100%;border-collapse:collapse;font-size:.85rem}
+  thead{background:var(--surface2)}
+  th{
+    text-align:left;
+    padding:10px 16px;
+    font-family:'Syne',sans-serif;
+    font-weight:600;
+    font-size:.75rem;
+    letter-spacing:.04em;
+    text-transform:uppercase;
+    color:var(--muted);
+    border-bottom:1px solid var(--border);
+    white-space:nowrap;
+  }
+  td{
+    padding:10px 16px;
+    border-bottom:1px solid var(--border);
+    color:#c9d1df;
+    vertical-align:top;
+  }
+  tr:last-child td{border-bottom:none}
+  tr:hover td{background:var(--surface2)}
+  td:first-child{
+    color:#93c5fd;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.78rem;
+    white-space:nowrap;
+  }
 
-Config System
+  /* ── ELEMENT CARDS ── */
+  .element-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fill,minmax(200px,1fr));
+    gap:12px;
+    margin:20px 0;
+  }
+  .element-card{
+    background:var(--surface);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:16px;
+    cursor:pointer;
+    text-decoration:none;
+    display:block;
+    transition:border-color .15s,transform .15s,box-shadow .15s;
+  }
+  .element-card:hover{
+    border-color:var(--accent);
+    transform:translateY(-2px);
+    box-shadow:0 8px 24px rgba(0,0,0,.4);
+  }
+  .el-icon{
+    width:32px;height:32px;
+    border-radius:7px;
+    background:var(--accent-lo);
+    border:1px solid rgba(2,133,255,.25);
+    display:flex;align-items:center;justify-content:center;
+    font-size:.9rem;
+    margin-bottom:10px;
+  }
+  .el-name{
+    font-family:'Syne',sans-serif;
+    font-weight:600;
+    font-size:.85rem;
+    color:var(--text);
+    margin-bottom:4px;
+  }
+  .el-desc{font-size:.75rem;color:var(--muted);line-height:1.5}
 
-Notifications
-RESOURCES
+  /* ── METHOD ROWS ── */
+  .method-list{margin:16px 0}
+  .method-row{
+    border:1px solid var(--border);
+    border-radius:9px;
+    margin-bottom:8px;
+    overflow:hidden;
+  }
+  .method-head{
+    display:flex;align-items:center;gap:12px;
+    padding:12px 16px;
+    background:var(--surface);
+    cursor:pointer;
+    transition:background .12s;
+  }
+  .method-head:hover{background:var(--surface2)}
+  .method-tag{
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.78rem;
+    color:#93c5fd;
+    font-weight:500;
+    flex:1;
+  }
+  .method-desc-short{font-size:.8rem;color:var(--muted)}
+  .method-chevron{
+    color:var(--muted2);
+    transition:transform .2s;
+    font-size:.8rem;
+  }
+  .method-body{
+    display:none;
+    padding:14px 16px;
+    background:var(--surface2);
+    border-top:1px solid var(--border);
+    font-size:.85rem;
+    color:#c9d1df;
+    line-height:1.65;
+  }
+  .method-row.open .method-chevron{transform:rotate(90deg)}
+  .method-row.open .method-body{display:block}
 
-Full Template
+  /* ── DIVIDER ── */
+  .divider{
+    height:1px;
+    background:var(--border);
+    margin:48px 0;
+  }
 
-Demo
-Stable Release
-AtomUI
-A modern, feature-rich Roblox UI library for script executors. Build beautiful interfaces with smooth animations, auto-configuration, and 20+ built-in elements.
-Single File
-No Dependencies
-Auto Config
-20+ Elements
-Notifications
-Color Themes
+  /* ── STEP BLOCKS ── */
+  .steps{counter-reset:step;margin:20px 0}
+  .step{
+    display:flex;gap:16px;
+    margin-bottom:24px;
+    position:relative;
+  }
+  .step::after{
+    content:'';
+    position:absolute;
+    left:14px;top:32px;bottom:-24px;
+    width:1px;background:var(--border);
+  }
+  .step:last-child::after{display:none}
+  .step-num{
+    width:28px;height:28px;
+    border-radius:50%;
+    background:var(--surface2);
+    border:1px solid var(--border2);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'IBM Plex Mono',monospace;
+    font-size:.72rem;
+    color:var(--accent);
+    font-weight:600;
+    flex-shrink:0;
+    margin-top:2px;
+    z-index:1;
+    counter-increment:step;
+  }
+  .step-content h4{
+    font-family:'Syne',sans-serif;
+    font-weight:600;
+    font-size:.9rem;
+    color:var(--text);
+    margin-bottom:6px;
+  }
+  .step-content p{font-size:.85rem;color:var(--muted);line-height:1.6}
 
-PREREQUISITES
-Requirements
-AtomUI is a single-file Lua library with no external dependencies. All you need is a compatible executor.
-ℹ
-Your executor must support HttpGet, writefile / readfile, and standard Roblox services. Most modern executors (Delta, Synapse, etc.) meet these requirements.
-GETTING STARTED
-Installation
-Load AtomUI with a single loadstring call. No files to download, no setup required.
-LUA
+  /* ── RESPONSIVE ── */
+  @media(max-width:760px){
+    .sidebar{display:none}
+    .main{margin-left:0;padding-left:20px;padding-right:20px}
+    .hero-title{font-size:2rem}
+    .element-grid{grid-template-columns:1fr 1fr}
+  }
+</style>
+</head>
+<body>
 
-Copy
-local atom_ui = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"
-))()
-GETTING STARTED
-Basic Setup
-AtomUI uses a hierarchical structure: Window → Section → Tab → Group → Elements. Every UI starts with atom_ui.new().
-1
-Create a window
-Call atom_ui.new() with your config table.
-2
-Add a section
-Sections appear as top-level nav items in the sidebar.
-3
-Add tabs & groups
-Tabs organize content within a section; groups divide a tab into columns.
-4
-Add elements
-Attach toggles, sliders, buttons, and more to any group.
-LUA
+<!-- ── HEADER ── -->
+<header>
+  <a href="#intro" class="logo">
+    <div class="logo-icon">A</div>
+    AtomUI
+    <span class="logo-version">v1.1</span>
+  </a>
+  <div class="header-spacer"></div>
+  <nav class="header-links">
+    <a href="#getting-started">Guide</a>
+    <a href="#elements">Elements</a>
+    <a href="#methods">API</a>
+    <a href="#config">Config</a>
+    <a href="#notifications">Notifs</a>
+    <a href="#examples">Examples</a>
+  </nav>
+  <a href="https://github.com/VoidDeveloper67" class="gh-btn" target="_blank">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
+      <path d="M12 0C5.37 0 0 5.37 0 12c0 5.3 3.44 9.8 8.2 11.4.6.1.82-.26.82-.58v-2.03c-3.34.73-4.04-1.61-4.04-1.61-.55-1.39-1.34-1.76-1.34-1.76-1.09-.74.08-.73.08-.73 1.2.09 1.84 1.24 1.84 1.24 1.07 1.83 2.8 1.3 3.48 1 .1-.78.42-1.3.76-1.6-2.67-.3-5.47-1.33-5.47-5.93 0-1.31.47-2.38 1.24-3.22-.14-.3-.54-1.52.1-3.18 0 0 1-.32 3.3 1.23a11.5 11.5 0 0 1 3-.4c1.02.005 2.04.14 3 .4 2.28-1.55 3.29-1.23 3.29-1.23.65 1.66.24 2.88.12 3.18.77.84 1.23 1.91 1.23 3.22 0 4.61-2.8 5.63-5.48 5.92.43.37.81 1.1.81 2.22v3.29c0 .32.22.7.82.58C20.56 21.8 24 17.3 24 12c0-6.63-5.37-12-12-12z"/>
+    </svg>
+    GitHub
+  </a>
+</header>
 
-Copy
-local lib = atom_ui.new({
-    Name        = "My Script",
-    AccentColor = Color3.fromRGB(2, 133, 255),
-    AutoConfig  = true
-})
+<!-- ── SIDEBAR ── -->
+<nav class="sidebar">
+  <div class="sidebar-section">
+    <div class="sidebar-label">Introduction</div>
+    <a href="#intro" class="sidebar-item active" onclick="setActive(this)"><span class="dot"></span>Overview</a>
+    <a href="#requirements" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Requirements</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Getting Started</div>
+    <a href="#installation" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Installation</a>
+    <a href="#basic-setup" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Basic Setup</a>
+    <a href="#quickstart" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Quick Start</a>
+    <a href="#configuration" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Configuration</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Elements</div>
+    <a href="#elements" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Overview</a>
+    <a href="#element-usage" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Usage Examples</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">API Reference</div>
+    <a href="#methods" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Library Methods</a>
+    <a href="#config-api" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Config System</a>
+    <a href="#notifications" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Notifications</a>
+  </div>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Resources</div>
+    <a href="#examples" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Full Template</a>
+    <a href="#demo" class="sidebar-item" onclick="setActive(this)"><span class="dot"></span>Demo</a>
+  </div>
+</nav>
 
-local main   = lib:AddSection({ Name = "Main",   Icon = "home" })
-local combat = main:AddTab({     Name = "Combat", Icon = "crosshair" })
-local aim    = combat:AddGroup({  Name = "Aimbot", Side = "Left", Icon = "target" })
+<!-- ── CONTENT ── -->
+<main class="main">
 
-aim:AddToggle({
-    Name     = "Enabled",
-    Default  = false,
-    Callback = function(v) print("Aimbot:", v) end
-})
-GETTING STARTED
-Quick Start
-A complete working example with multiple tabs, groups, and elements — ready to paste and run.
-LUA
+  <!-- INTRO -->
+  <div class="hero" id="intro">
+    <div class="hero-badge">Stable Release</div>
+    <h1 class="hero-title">Atom<span>UI</span></h1>
+    <p class="hero-desc">A modern, feature-rich Roblox UI library for script executors. Build beautiful interfaces with smooth animations, auto-configuration, and 20+ built-in elements.</p>
+    <div class="hero-pills">
+      <span class="pill">Single File</span>
+      <span class="pill">No Dependencies</span>
+      <span class="pill">Auto Config</span>
+      <span class="pill">20+ Elements</span>
+      <span class="pill">Notifications</span>
+      <span class="pill">Color Themes</span>
+    </div>
+    <div class="hero-divider"></div>
+  </div>
 
-Copy
-local atom_ui = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"
-))()
+  <!-- REQUIREMENTS -->
+  <div class="doc-section" id="requirements">
+    <div class="section-eyebrow">Prerequisites</div>
+    <h2 class="section-title">Requirements</h2>
+    <p class="section-lead">AtomUI is a single-file Lua library with no external dependencies. All you need is a compatible executor.</p>
+    <div class="callout tip">
+      <span class="callout-icon">ℹ</span>
+      <div>Your executor must support <code>HttpGet</code>, <code>writefile</code> / <code>readfile</code>, and standard Roblox services. Most modern executors (Delta, Synapse, etc.) meet these requirements.</div>
+    </div>
+  </div>
 
-local lib = atom_ui.new({
-    Name         = "AtomUI Demo",
-    AccentColor  = Color3.fromRGB(2, 133, 255),
-    AutoConfig   = true,
-    ConfigFolder = "MyConfigs"
-})
+  <!-- INSTALLATION -->
+  <div class="doc-section" id="installation">
+    <div class="section-eyebrow">Getting Started</div>
+    <h2 class="section-title">Installation</h2>
+    <p class="section-lead">Load AtomUI with a single <code>loadstring</code> call. No files to download, no setup required.</p>
+    <div class="code-wrap">
+      <div class="code-header">
+        <span class="code-lang">Lua</span>
+        <button class="copy-btn" onclick="copyCode(this)">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          Copy
+        </button>
+      </div>
+      <div class="code-body"><code><span class="kw">local</span> <span class="fn">atom_ui</span> <span class="op">=</span> <span class="fn">loadstring</span><span class="op">(</span><span class="fn">game</span><span class="op">:</span><span class="fn">HttpGet</span><span class="op">(</span>
+    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"</span>
+<span class="op">))()</span></code></div>
+    </div>
+  </div>
 
-local main   = lib:AddSection({ Name = "Main", Icon = "home" })
-local combat = main:AddTab({ Name = "Combat", Description = "Combat settings", Icon = "crosshair" })
+  <!-- BASIC SETUP -->
+  <div class="doc-section" id="basic-setup">
+    <div class="section-eyebrow">Getting Started</div>
+    <h2 class="section-title">Basic Setup</h2>
+    <p class="section-lead">AtomUI uses a hierarchical structure: <strong>Window → Section → Tab → Group → Elements</strong>. Every UI starts with <code>atom_ui.new()</code>.</p>
+    <div class="steps">
+      <div class="step"><div class="step-num">1</div><div class="step-content"><h4>Create a window</h4><p>Call <code>atom_ui.new()</code> with your config table.</p></div></div>
+      <div class="step"><div class="step-num">2</div><div class="step-content"><h4>Add a section</h4><p>Sections appear as top-level nav items in the sidebar.</p></div></div>
+      <div class="step"><div class="step-num">3</div><div class="step-content"><h4>Add tabs &amp; groups</h4><p>Tabs organize content within a section; groups divide a tab into columns.</p></div></div>
+      <div class="step"><div class="step-num">4</div><div class="step-content"><h4>Add elements</h4><p>Attach toggles, sliders, buttons, and more to any group.</p></div></div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
+      <div class="code-body"><code><span class="kw">local</span> <span class="fn">lib</span> <span class="op">=</span> <span class="fn">atom_ui</span><span class="op">.</span><span class="fn">new</span><span class="op">({</span>
+    <span class="key">Name</span>        <span class="op">=</span> <span class="str">"My Script"</span><span class="op">,</span>
+    <span class="key">AccentColor</span> <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">2</span><span class="op">,</span> <span class="num">133</span><span class="op">,</span> <span class="num">255</span><span class="op">),</span>
+    <span class="key">AutoConfig</span>  <span class="op">=</span> <span class="bool">true</span>
+<span class="op">})</span>
 
-local left = combat:AddGroup({ Name = "Aimbot", Side = "Left", Icon = "target" })
-left:AddToggle({  Name = "Enabled",  Default = false,   Callback = function(v) print(v) end })
-left:AddSlider({  Name = "FOV",      Min = 10,    Max = 800,  Default = 120, Increment = 5,  Callback = function(v) print(v) end })
-left:AddDropdown({Name = "Target",   Options = {"Head", "Torso"}, Default = "Head",  Callback = function(v) print(v) end })
+<span class="kw">local</span> <span class="fn">main</span>   <span class="op">=</span> <span class="fn">lib</span><span class="op">:</span><span class="fn">AddSection</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Main"</span><span class="op">,</span>   <span class="key">Icon</span> <span class="op">=</span> <span class="str">"home"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">combat</span> <span class="op">=</span> <span class="fn">main</span><span class="op">:</span><span class="fn">AddTab</span><span class="op">({</span>     <span class="key">Name</span> <span class="op">=</span> <span class="str">"Combat"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"crosshair"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">aim</span>    <span class="op">=</span> <span class="fn">combat</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span>  <span class="key">Name</span> <span class="op">=</span> <span class="str">"Aimbot"</span><span class="op">,</span> <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"target"</span> <span class="op">})</span>
 
-local right = combat:AddGroup({ Name = "Visuals", Side = "Right", Icon = "eye" })
-right:AddToggle({     Name = "Box ESP", Default = true, Callback = function(v) print(v) end })
-right:AddColorPicker({Name = "Color",   Default = Color3.fromRGB(255, 0, 0), Callback = function(c) print(c) end })
+<span class="fn">aim</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>
+    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"Enabled"</span><span class="op">,</span>
+    <span class="key">Default</span>  <span class="op">=</span> <span class="bool">false</span><span class="op">,</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span><span class="str">"Aimbot:"</span><span class="op">,</span> v<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span></code></div>
+    </div>
+  </div>
 
-lib:Notify({
-    Title       = "Ready",
-    Description = "Press RightCtrl to toggle the UI",
-    Duration    = 5
-})
-GETTING STARTED
-Configuration
-All options passed to atom_ui.new().
-OPTION
-TYPE
-DEFAULT
-DESCRIPTION
-Name
-string
-"Hub"
-Window title displayed in the header
-AccentColor
-Color3
-fromRGB(2,133,255)
-Primary theme accent color
-AutoConfig
-boolean
-false
-Enable automatic save/load on startup
-ConfigFolder
-string
-"AtomConfigs"
-Folder name for config JSON files
-ShowAutoSaveToggle
-boolean
-true
-Show the auto-save toggle in settings
-UseConfigSystem
-boolean
-true
-Enable the config UI tab
-Watermark
-string
-nil
-Watermark text overlay
-💡
-When AutoConfig is enabled, element states are saved every 60 seconds and restored automatically on the next load.
-ELEMENTS
-Element Library
-20+ built-in elements — all attached to a Group object.
-⊙
-AddToggle
-On/off switch with smooth animation and color transitions
-⇿
-AddSlider
-Draggable numeric slider with fill bar and value label
-▾
-AddDropdown
-Single-select dropdown with search filter and auto-width
-☑
-AddMultiDropdown
-Multi-select dropdown with checkboxes for each option
-◈
-AddButton
-Clickable button with optional icon and locked state
-⌨
-AddKeybind
-Keybind input with Toggle and Hold modes
-⌘
-AddKeybindToggle
-Combined keybind and toggle in a single row
-✎
-AddTextInput
-Single-line text input with placeholder and callbacks
-◐
-AddColorPicker
-HSV color picker with preset swatches and live preview
-T
-AddLabel / AddParagraph
-Text display with optional word wrapping
-─
-AddDivider
-Horizontal separator with gradient effect
-↕
-AddSpacer
-Configurable vertical spacing between elements
-▰
-AddProgressBar
-Animated fill bar for displaying values between 0–1 with optional percent label
-±
-AddNumberInput
-Increment/decrement stepper with optional min, max, and step constraints
-◉
-AddBadge
-Colored pill label for displaying status or metadata inline
-⊞
-AddSubTab
-Horizontal pill-bar sub-navigation inside a tab, each with its own groups and elements
-🎨
-Custom Background
-Set a custom background image with blur overlay and tint support
-ELEMENTS
-Usage Examples
-Click any element to expand its config options, methods, and a copy-ready code snippet. The Flag property on any element enables config system tracking.
-group:AddToggle(config)
-On/off switch with animated pill
-▶
-group:AddSlider(config)
-Draggable numeric slider with fill bar
-▶
-group:AddDropdown(config)
-Single-select dropdown with search
-▶
-group:AddMultiDropdown(config)
-Multi-select dropdown with checkboxes
-▶
-group:AddButton(config)
-Clickable button with optional icon and lock state
-▶
-group:AddKeybind(config)
-Keybind input with Toggle and Hold modes
-▶
-group:AddKeybindToggle(config)
-Combined keybind + toggle in one row
-▶
-group:AddTextInput(config)
-Single-line text field with placeholder
-▶
-group:AddColorPicker(config)
-HSV color picker with live preview swatch
-▶
-group:AddLabel(config) / group:AddParagraph(config)
-Read-only text display with optional wrapping
-▶
-group:AddDivider()
-Horizontal gradient separator line
-▶
-group:AddSpacer(height?)
-Configurable vertical blank space
-▶
-group:AddProgressBar(config)
-Animated fill bar for 0–1 values
-▶
-group:AddNumberInput(config)
-− / + stepper with optional bounds
-▶
-group:AddBadge(config)
-Colored pill for status or metadata
-▶
-tab:AddSubTab(config)
-Horizontal pill sub-navigation inside a tab
-▶
-Custom Background (Config)
-Set a custom background image with blur overlay
-▶
-API REFERENCE
-Library Methods
-All methods available on the lib object returned by atom_ui.new().
-atom_ui.new(config)
-Create a new UI window
-▶
-lib:Toggle()
-Toggle UI open/closed
-▶
-lib:Open() / lib:Close()
-Explicitly open or close the UI
-▶
-lib:Notify(config)
-Show a notification
-▶
-lib:SetAccentColor(color)
-Change the theme color at runtime
-▶
-lib:SetWatermark(config)
-Add a watermark overlay
-▶
-lib:SetSearchFilter(query)
-Filter visible tabs and groups
-▶
-lib:SetESPPreview(enabled)
-Toggle the ESP preview panel
-▶
-lib:SaveConfig(name) / lib:LoadConfig(name)
-Manually save or load a config
-▶
-lib:RefreshConfigs()
-List all saved config names
-▶
-lib:Destroy()
-Destroy the UI and clean up
-▶
-atom_ui.Demo()
-Launch the built-in demo UI
-▶
-API REFERENCE
-Config System
-AtomUI can automatically persist element states to JSON files. Any element with a Flag is tracked.
-⚠
-The config system requires your executor to support writefile, readfile, isfolder, makefolder, and listfiles.
-LUA
+  <!-- QUICKSTART -->
+  <div class="doc-section" id="quickstart">
+    <div class="section-eyebrow">Getting Started</div>
+    <h2 class="section-title">Quick Start</h2>
+    <p class="section-lead">A complete working example with multiple tabs, groups, and elements — ready to paste and run.</p>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
+      <div class="code-body"><code><span class="kw">local</span> <span class="fn">atom_ui</span> <span class="op">=</span> <span class="fn">loadstring</span><span class="op">(</span><span class="fn">game</span><span class="op">:</span><span class="fn">HttpGet</span><span class="op">(</span>
+    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"</span>
+<span class="op">))()</span>
 
-Copy
-local lib = atom_ui.new({
-    Name               = "My Script",
-    AutoConfig         = true,
-    ConfigFolder       = "MyConfigs",
-    ShowAutoSaveToggle = true
-})
+<span class="kw">local</span> <span class="fn">lib</span> <span class="op">=</span> <span class="fn">atom_ui</span><span class="op">.</span><span class="fn">new</span><span class="op">({</span>
+    <span class="key">Name</span>         <span class="op">=</span> <span class="str">"AtomUI Demo"</span><span class="op">,</span>
+    <span class="key">AccentColor</span>  <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">2</span><span class="op">,</span> <span class="num">133</span><span class="op">,</span> <span class="num">255</span><span class="op">),</span>
+    <span class="key">AutoConfig</span>   <span class="op">=</span> <span class="bool">true</span><span class="op">,</span>
+    <span class="key">ConfigFolder</span> <span class="op">=</span> <span class="str">"MyConfigs"</span>
+<span class="op">})</span>
 
-group:AddToggle({
-    Name    = "Silent Aim",
-    Flag    = "silent_aim",  -- tracked by config system
-    Default = false,
-    Callback = function(v) end
-})
+<span class="kw">local</span> <span class="fn">main</span>   <span class="op">=</span> <span class="fn">lib</span><span class="op">:</span><span class="fn">AddSection</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Main"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"home"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">combat</span> <span class="op">=</span> <span class="fn">main</span><span class="op">:</span><span class="fn">AddTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Combat"</span><span class="op">,</span> <span class="key">Description</span> <span class="op">=</span> <span class="str">"Combat settings"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"crosshair"</span> <span class="op">})</span>
 
-lib:SaveConfig("legit")
-lib:LoadConfig("rage")
-METHOD
-DESCRIPTION
-lib:SaveConfig(name)
-Save current values to ConfigFolder/name.json
-lib:LoadConfig(name)
-Load values from ConfigFolder/name.json
-lib:RefreshConfigs()
-Returns a table of saved config names
-API REFERENCE
-Notifications
-Built-in toast notifications with progress bars, icons, and smooth slide animations.
-LUA
+<span class="kw">local</span> <span class="fn">left</span> <span class="op">=</span> <span class="fn">combat</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Aimbot"</span><span class="op">,</span> <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"target"</span> <span class="op">})</span>
+<span class="fn">left</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>  <span class="key">Name</span> <span class="op">=</span> <span class="str">"Enabled"</span><span class="op">,</span>  <span class="key">Default</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span>   <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">left</span><span class="op">:</span><span class="fn">AddSlider</span><span class="op">({</span>  <span class="key">Name</span> <span class="op">=</span> <span class="str">"FOV"</span><span class="op">,</span>      <span class="key">Min</span> <span class="op">=</span> <span class="num">10</span><span class="op">,</span>    <span class="key">Max</span> <span class="op">=</span> <span class="num">800</span><span class="op">,</span>  <span class="key">Default</span> <span class="op">=</span> <span class="num">120</span><span class="op">,</span> <span class="key">Increment</span> <span class="op">=</span> <span class="num">5</span><span class="op">,</span>  <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">left</span><span class="op">:</span><span class="fn">AddDropdown</span><span class="op">({</span><span class="key">Name</span> <span class="op">=</span> <span class="str">"Target"</span><span class="op">,</span>   <span class="key">Options</span> <span class="op">=</span> <span class="op">{</span><span class="str">"Head"</span><span class="op">,</span> <span class="str">"Torso"</span><span class="op">},</span> <span class="key">Default</span> <span class="op">=</span> <span class="str">"Head"</span><span class="op">,</span>  <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
 
-Copy
-lib:Notify({
-    Title       = "Success",
-    Description = "Settings saved successfully",
-    Duration    = 3,
-    Icon        = "rbxassetid://10747361219"
-})
-PROPERTY
-TYPE
-REQUIRED
-DESCRIPTION
-Title
-string
-Yes
-Notification title text
-Description
-string
-No
-Body text beneath the title
-Duration
-number
-No
-Display time in seconds (default: 3)
-Icon
-string
-No
-Asset URL — rbxassetid://...
-⚡
-Rate limiting: Duplicate notifications within 0.85 seconds are automatically suppressed to prevent spam.
-RESOURCES
-Full Script Template
-A production-ready template with Combat, Visuals, and Config sections wired up with _G flags and config save/load buttons.
-LUA
+<span class="kw">local</span> <span class="fn">right</span> <span class="op">=</span> <span class="fn">combat</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Visuals"</span><span class="op">,</span> <span class="key">Side</span> <span class="op">=</span> <span class="str">"Right"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"eye"</span> <span class="op">})</span>
+<span class="fn">right</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>     <span class="key">Name</span> <span class="op">=</span> <span class="str">"Box ESP"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="bool">true</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">right</span><span class="op">:</span><span class="fn">AddColorPicker</span><span class="op">({</span><span class="key">Name</span> <span class="op">=</span> <span class="str">"Color"</span><span class="op">,</span>   <span class="key">Default</span> <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span> <span class="num">0</span><span class="op">,</span> <span class="num">0</span><span class="op">),</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>c<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>c<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
 
-Copy
-local atom_ui = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"
-))()
+<span class="fn">lib</span><span class="op">:</span><span class="fn">Notify</span><span class="op">({</span>
+    <span class="key">Title</span>       <span class="op">=</span> <span class="str">"Ready"</span><span class="op">,</span>
+    <span class="key">Description</span> <span class="op">=</span> <span class="str">"Press RightCtrl to toggle the UI"</span><span class="op">,</span>
+    <span class="key">Duration</span>    <span class="op">=</span> <span class="num">5</span>
+<span class="op">})</span></code></div>
+    </div>
+  </div>
 
-local lib = atom_ui.new({
-    Name         = "Combat Suite",
-    AccentColor  = Color3.fromRGB(255, 60, 60),
-    AutoConfig   = true,
-    ConfigFolder = "CombatConfigs"
-})
+  <!-- CONFIGURATION -->
+  <div class="doc-section" id="configuration">
+    <div class="section-eyebrow">Getting Started</div>
+    <h2 class="section-title">Configuration</h2>
+    <p class="section-lead">All options passed to <code>atom_ui.new()</code>.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Option</th><th>Type</th><th>Default</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Name</td><td>string</td><td>"Hub"</td><td>Window title displayed in the header</td></tr>
+          <tr><td>AccentColor</td><td>Color3</td><td>fromRGB(2,133,255)</td><td>Primary theme accent color</td></tr>
+          <tr><td>AutoConfig</td><td>boolean</td><td>false</td><td>Enable automatic save/load on startup</td></tr>
+          <tr><td>ConfigFolder</td><td>string</td><td>"AtomConfigs"</td><td>Folder name for config JSON files</td></tr>
+          <tr><td>ShowAutoSaveToggle</td><td>boolean</td><td>true</td><td>Show the auto-save toggle in settings</td></tr>
+          <tr><td>UseConfigSystem</td><td>boolean</td><td>true</td><td>Enable the config UI tab</td></tr>
+          <tr><td>Watermark</td><td>string</td><td>nil</td><td>Watermark text overlay</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <div>When <code>AutoConfig</code> is enabled, element states are saved every 60 seconds and restored automatically on the next load.</div>
+    </div>
+  </div>
 
-local combat   = lib:AddSection({ Name = "Combat",   Icon = "crosshair" })
-local visuals  = lib:AddSection({ Name = "Visuals",  Icon = "eye" })
-local settings = lib:AddSection({ Name = "Settings", Icon = "settings" })
+  <!-- ELEMENTS -->
+  <div class="doc-section" id="elements">
+    <div class="section-eyebrow">Elements</div>
+    <h2 class="section-title">Element Library</h2>
+    <p class="section-lead">20+ built-in elements — all attached to a <code>Group</code> object.</p>
+    <div class="element-grid">
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">⊙</div>
+        <div class="el-name">AddToggle</div>
+        <div class="el-desc">On/off switch with smooth animation and color transitions</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">⇿</div>
+        <div class="el-name">AddSlider</div>
+        <div class="el-desc">Draggable numeric slider with fill bar and value label</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">▾</div>
+        <div class="el-name">AddDropdown</div>
+        <div class="el-desc">Single-select dropdown with search filter and auto-width</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">☑</div>
+        <div class="el-name">AddMultiDropdown</div>
+        <div class="el-desc">Multi-select dropdown with checkboxes for each option</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">◈</div>
+        <div class="el-name">AddButton</div>
+        <div class="el-desc">Clickable button with optional icon and locked state</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">⌨</div>
+        <div class="el-name">AddKeybind</div>
+        <div class="el-desc">Keybind input with Toggle and Hold modes</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">⌘</div>
+        <div class="el-name">AddKeybindToggle</div>
+        <div class="el-desc">Combined keybind and toggle in a single row</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">✎</div>
+        <div class="el-name">AddTextInput</div>
+        <div class="el-desc">Single-line text input with placeholder and callbacks</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">◐</div>
+        <div class="el-name">AddColorPicker</div>
+        <div class="el-desc">HSV color picker with preset swatches and live preview</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">T</div>
+        <div class="el-name">AddLabel / AddParagraph</div>
+        <div class="el-desc">Text display with optional word wrapping</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">─</div>
+        <div class="el-name">AddDivider</div>
+        <div class="el-desc">Horizontal separator with gradient effect</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">↕</div>
+        <div class="el-name">AddSpacer</div>
+        <div class="el-desc">Configurable vertical spacing between elements</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">▰</div>
+        <div class="el-name">AddProgressBar</div>
+        <div class="el-desc">Animated fill bar for displaying values between 0–1 with optional percent label</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">±</div>
+        <div class="el-name">AddNumberInput</div>
+        <div class="el-desc">Increment/decrement stepper with optional min, max, and step constraints</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">◉</div>
+        <div class="el-name">AddBadge</div>
+        <div class="el-desc">Colored pill label for displaying status or metadata inline</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">⊞</div>
+        <div class="el-name">AddSubTab</div>
+        <div class="el-desc">Horizontal pill-bar sub-navigation inside a tab, each with its own groups and elements</div>
+      </a>
+      <a href="#element-usage" class="element-card">
+        <div class="el-icon">🎨</div>
+        <div class="el-name">Custom Background</div>
+        <div class="el-desc">Set a custom background image with blur overlay and tint support</div>
+      </a>
+    </div>
+  </div>
 
-local ctab = combat:AddTab({ Name = "Aimbot", Description = "Aim assist", Icon = "target" })
-local aim  = ctab:AddGroup({  Name = "Main",    Side = "Left",    Icon = "target" })
+  <!-- ELEMENT USAGE -->
+  <div class="doc-section" id="element-usage">
+    <div class="section-eyebrow">Elements</div>
+    <h2 class="section-title">Usage Examples</h2>
+    <p class="section-lead">Click any element to expand its config options, methods, and a copy-ready code snippet. The <code>Flag</code> property on any element enables config system tracking.</p>
 
-aim:AddToggle({  Name = "Silent Aim",     Default = false, Flag = "silent",  Callback = function(v) _G.Silent       = v end })
-aim:AddToggle({  Name = "Visible Check",  Default = true,  Flag = "visible", Callback = function(v) _G.VisibleCheck = v end })
-aim:AddSlider({  Name = "FOV",           Min = 10, Max = 500, Default = 150, Increment = 10, Flag = "fov",  Callback = function(v) _G.FOV  = v end })
-aim:AddDropdown({Name = "Hit Part",       Options = {"Head","HumanoidRootPart","Torso"}, Default = "Head", Flag = "part", Callback = function(v) _G.Part = v end })
-aim:AddKeybind({ Name = "Aim Key",       Default = Enum.KeyCode.Q, Mode = "Hold", Flag = "aimkey", Callback = function(v) _G.Aiming = v end })
+    <div class="method-list">
 
-local vtab = visuals:AddTab({ Name = "ESP", Description = "Player ESP", Icon = "eye" })
-local esp  = vtab:AddGroup({  Name = "ESP",   Side = "Left",    Icon = "eye" })
+      <!-- AddToggle -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddToggle(config)</span>
+          <span class="method-desc-short">On/off switch with animated pill</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Toggle"</td><td>Label text</td></tr>
+              <tr><td>Default</td><td>boolean</td><td>false</td><td>Initial state</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(bool)</td><td>—</td><td>Fires on change</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(bool, silent?)</code> &nbsp;·&nbsp; <code>:Get() → bool</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">t</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>
+    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"Enabled"</span><span class="op">,</span>
+    <span class="key">Default</span>  <span class="op">=</span> <span class="bool">false</span><span class="op">,</span>
+    <span class="key">Flag</span>     <span class="op">=</span> <span class="str">"aimbot_enabled"</span><span class="op">,</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">t</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="bool">true</span><span class="op">)</span>   <span class="cmt">-- set value programmatically</span>
+<span class="fn">t</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>        <span class="cmt">-- returns current bool</span></code></div></div>
+        </div>
+      </div>
 
-esp:AddToggle({     Name = "Box ESP",    Default = true,  Flag = "box",        Callback = function(v) _G.BoxESP    = v end })
-esp:AddToggle({     Name = "Name ESP",   Default = true,  Flag = "name",       Callback = function(v) _G.NameESP   = v end })
-esp:AddToggle({     Name = "Health ESP", Default = false, Flag = "health",     Callback = function(v) _G.HealthESP = v end })
-esp:AddColorPicker({Name = "Team Color",  Default = Color3.fromRGB(0,255,100),  Flag = "teamcolor",  Callback = function(c) _G.TeamColor  = c end })
-esp:AddColorPicker({Name = "Enemy Color", Default = Color3.fromRGB(255,50,50),   Flag = "enemycolor", Callback = function(c) _G.EnemyColor = c end })
+      <!-- AddSlider -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddSlider(config)</span>
+          <span class="method-desc-short">Draggable numeric slider with fill bar</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Slider"</td><td>Label text</td></tr>
+              <tr><td>Min</td><td>number</td><td>0</td><td>Minimum value</td></tr>
+              <tr><td>Max</td><td>number</td><td>100</td><td>Maximum value</td></tr>
+              <tr><td>Default</td><td>number</td><td>Min</td><td>Starting value</td></tr>
+              <tr><td>Increment</td><td>number</td><td>1</td><td>Snap step size</td></tr>
+              <tr><td>Suffix</td><td>string</td><td>""</td><td>Unit appended to value label</td></tr>
+              <tr><td>ShowMax</td><td>boolean</td><td>false</td><td>Show "value / max" format</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(number)</td><td>—</td><td>Fires on value change</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(number, silent?)</code> &nbsp;·&nbsp; <code>:Get() → number</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">s</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddSlider</span><span class="op">({</span>
+    <span class="key">Name</span>      <span class="op">=</span> <span class="str">"FOV"</span><span class="op">,</span>
+    <span class="key">Min</span>       <span class="op">=</span> <span class="num">10</span><span class="op">,</span>
+    <span class="key">Max</span>       <span class="op">=</span> <span class="num">800</span><span class="op">,</span>
+    <span class="key">Default</span>   <span class="op">=</span> <span class="num">120</span><span class="op">,</span>
+    <span class="key">Increment</span> <span class="op">=</span> <span class="num">5</span><span class="op">,</span>
+    <span class="key">Suffix</span>    <span class="op">=</span> <span class="str">"px"</span><span class="op">,</span>
+    <span class="key">Flag</span>      <span class="op">=</span> <span class="str">"aimbot_fov"</span><span class="op">,</span>
+    <span class="key">Callback</span>  <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">s</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="num">200</span><span class="op">)</span>   <span class="cmt">-- jump to value</span>
+<span class="fn">s</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>       <span class="cmt">-- returns current number</span></code></div></div>
+        </div>
+      </div>
 
-local stab = settings:AddTab({ Name = "Config", Description = "Save/Load", Icon = "save" })
-local cfg  = stab:AddGroup({ Name = "Config", Side = "Left", Icon = "hard-drive" })
+      <!-- AddDropdown -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddDropdown(config)</span>
+          <span class="method-desc-short">Single-select dropdown with search</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Dropdown"</td><td>Label text</td></tr>
+              <tr><td>Options</td><td>table</td><td>{}</td><td>Array of string options</td></tr>
+              <tr><td>Default</td><td>string</td><td>Options[1]</td><td>Initially selected value</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(string)</td><td>—</td><td>Fires on selection change</td></tr>
+              <tr><td>OptionsProvider</td><td>function → table</td><td>nil</td><td>Dynamic options source</td></tr>
+              <tr><td>AutoRefresh</td><td>boolean</td><td>auto</td><td>Re-poll OptionsProvider automatically</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(string, silent?)</code> &nbsp;·&nbsp; <code>:Get() → string</code> &nbsp;·&nbsp; <code>:UpdateOptions(table)</code> &nbsp;·&nbsp; <code>:Close()</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">d</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddDropdown</span><span class="op">({</span>
+    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"Target Part"</span><span class="op">,</span>
+    <span class="key">Options</span>  <span class="op">=</span> <span class="op">{</span><span class="str">"Head"</span><span class="op">,</span> <span class="str">"Torso"</span><span class="op">,</span> <span class="str">"HumanoidRootPart"</span><span class="op">},</span>
+    <span class="key">Default</span>  <span class="op">=</span> <span class="str">"Head"</span><span class="op">,</span>
+    <span class="key">Flag</span>     <span class="op">=</span> <span class="str">"aimbot_target"</span><span class="op">,</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">d</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="str">"Torso"</span><span class="op">)</span>
+<span class="fn">d</span><span class="op">:</span><span class="fn">UpdateOptions</span><span class="op">({</span><span class="str">"Head"</span><span class="op">,</span> <span class="str">"Neck"</span><span class="op">})</span>   <span class="cmt">-- swap options at runtime</span></code></div></div>
+        </div>
+      </div>
 
-cfg:AddButton({Name = "Save Legit", Callback = function() lib:SaveConfig("legit") lib:Notify({Title="Config", Description="Legit saved!", Duration=3}) end})
-cfg:AddButton({Name = "Save Rage",  Callback = function() lib:SaveConfig("rage")  lib:Notify({Title="Config", Description="Rage saved!",  Duration=3}) end})
-cfg:AddButton({Name = "Load Legit", Callback = function() lib:LoadConfig("legit") lib:Notify({Title="Config", Description="Legit loaded!",Duration=3}) end})
-cfg:AddButton({Name = "Load Rage",  Callback = function() lib:LoadConfig("rage")  lib:Notify({Title="Config", Description="Rage loaded!",  Duration=3}) end})
+      <!-- AddMultiDropdown -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddMultiDropdown(config)</span>
+          <span class="method-desc-short">Multi-select dropdown with checkboxes</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Multi Dropdown"</td><td>Label text</td></tr>
+              <tr><td>Options</td><td>table</td><td>{}</td><td>Array of string options</td></tr>
+              <tr><td>Default</td><td>table</td><td>{}</td><td>Array of initially selected values</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(table)</td><td>—</td><td>Fires with array of selected values</td></tr>
+              <tr><td>OptionsProvider</td><td>function → table</td><td>nil</td><td>Dynamic options source</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(table, silent?)</code> &nbsp;·&nbsp; <code>:Get() → table</code> &nbsp;·&nbsp; <code>:UpdateOptions(table)</code> &nbsp;·&nbsp; <code>:Close()</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">md</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddMultiDropdown</span><span class="op">({</span>
+    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"ESP Types"</span><span class="op">,</span>
+    <span class="key">Options</span>  <span class="op">=</span> <span class="op">{</span><span class="str">"Box"</span><span class="op">,</span> <span class="str">"Name"</span><span class="op">,</span> <span class="str">"Health"</span><span class="op">,</span> <span class="str">"Distance"</span><span class="op">},</span>
+    <span class="key">Default</span>  <span class="op">=</span> <span class="op">{</span><span class="str">"Box"</span><span class="op">,</span> <span class="str">"Name"</span><span class="op">},</span>
+    <span class="key">Flag</span>     <span class="op">=</span> <span class="str">"esp_types"</span><span class="op">,</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>values<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>values<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">md</span><span class="op">:</span><span class="fn">Set</span><span class="op">({</span><span class="str">"Health"</span><span class="op">})</span>   <span class="cmt">-- set selection programmatically</span>
+<span class="fn">md</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>            <span class="cmt">-- returns array of selected values</span></code></div></div>
+        </div>
+      </div>
 
-lib:Notify({ Title = "Combat Suite", Description = "Loaded successfully!", Duration = 5 })
-RESOURCES
-Demo
-Run the built-in demo to see all elements in action instantly.
-LUA
+      <!-- AddButton -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddButton(config)</span>
+          <span class="method-desc-short">Clickable button with optional icon and lock state</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Button"</td><td>Button label</td></tr>
+              <tr><td>Icon</td><td>string</td><td>nil</td><td>rbxassetid or lucide icon name</td></tr>
+              <tr><td>Locked</td><td>boolean</td><td>false</td><td>Grays out and disables clicks</td></tr>
+              <tr><td>Callback</td><td>function()</td><td>—</td><td>Fires on click</td></tr>
+            </tbody></table>
+          </div>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddButton</span><span class="op">({</span>
+    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"Rejoin Server"</span><span class="op">,</span>
+    <span class="key">Icon</span>     <span class="op">=</span> <span class="str">"refresh-cw"</span><span class="op">,</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">()</span>
+        <span class="fn">game</span><span class="op">:</span><span class="fn">GetService</span><span class="op">(</span><span class="str">"TeleportService"</span><span class="op">):</span><span class="fn">Teleport</span><span class="op">(</span><span class="fn">game</span><span class="op">.</span><span class="fn">PlaceId</span><span class="op">)</span>
+    <span class="kw">end</span>
+<span class="op">})</span></code></div></div>
+        </div>
+      </div>
 
-Copy
-local atom_ui = loadstring(game:HttpGet(
-    "https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"
-))()
+      <!-- AddKeybind -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddKeybind(config)</span>
+          <span class="method-desc-short">Keybind input with Toggle and Hold modes</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Keybind"</td><td>Label text</td></tr>
+              <tr><td>Default</td><td>Enum.KeyCode</td><td>Unknown</td><td>Starting key</td></tr>
+              <tr><td>Mode</td><td>"Toggle" | "Hold"</td><td>"Toggle"</td><td>Activation mode</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function()</td><td>—</td><td>Fires on key press / hold start</td></tr>
+              <tr><td>ChangedCallback</td><td>function(KeyCode)</td><td>—</td><td>Fires when the key is rebound</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(KeyCode, silent?)</code> &nbsp;·&nbsp; <code>:Get() → KeyCode</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddKeybind</span><span class="op">({</span>
+    <span class="key">Name</span>            <span class="op">=</span> <span class="str">"Toggle Key"</span><span class="op">,</span>
+    <span class="key">Default</span>         <span class="op">=</span> <span class="fn">Enum</span><span class="op">.</span><span class="fn">KeyCode</span><span class="op">.</span><span class="fn">E</span><span class="op">,</span>
+    <span class="key">Mode</span>            <span class="op">=</span> <span class="str">"Toggle"</span><span class="op">,</span>
+    <span class="key">Flag</span>            <span class="op">=</span> <span class="str">"aimbot_key"</span><span class="op">,</span>
+    <span class="key">Callback</span>        <span class="op">=</span> <span class="kw">function</span><span class="op">()</span> <span class="fn">print</span><span class="op">(</span><span class="str">"Fired!"</span><span class="op">)</span> <span class="kw">end</span><span class="op">,</span>
+    <span class="key">ChangedCallback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>key<span class="op">)</span> <span class="fn">print</span><span class="op">(</span><span class="str">"Rebound to:"</span><span class="op">,</span> key<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span></code></div></div>
+        </div>
+      </div>
 
-atom_ui.Demo()
-💡
-The demo creates a full UI with toggles, sliders, dropdowns, keybinds, color pickers, progress bars, number inputs, badges, and more. Press RightCtrl to toggle the UI open/closed.
+      <!-- AddKeybindToggle -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddKeybindToggle(config)</span>
+          <span class="method-desc-short">Combined keybind + toggle in one row</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <p style="margin-bottom:10px;font-size:.875rem">A single row element with both a keybind picker and an on/off toggle switch. Useful for features that can be permanently on or activated only while holding a key.</p>
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Keybind"</td><td>Label text</td></tr>
+              <tr><td>Default</td><td>Enum.KeyCode</td><td>Unknown</td><td>Starting key</td></tr>
+              <tr><td>ToggleDefault</td><td>boolean</td><td>false</td><td>Initial toggle state</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(bool)</td><td>—</td><td>Fires with toggle state on key press</td></tr>
+            </tbody></table>
+          </div>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddKeybindToggle</span><span class="op">({</span>
+    <span class="key">Name</span>          <span class="op">=</span> <span class="str">"Aimbot Key"</span><span class="op">,</span>
+    <span class="key">Default</span>       <span class="op">=</span> <span class="fn">Enum</span><span class="op">.</span><span class="fn">KeyCode</span><span class="op">.</span><span class="fn">CapsLock</span><span class="op">,</span>
+    <span class="key">ToggleDefault</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span>
+    <span class="key">Flag</span>          <span class="op">=</span> <span class="str">"aimbot_keytoggle"</span><span class="op">,</span>
+    <span class="key">Callback</span>      <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>state<span class="op">)</span> <span class="fn">print</span><span class="op">(</span><span class="str">"Active:"</span><span class="op">,</span> state<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span></code></div></div>
+        </div>
+      </div>
 
-AtomUI v1.1 — Made by von63rd
-VoidDeveloper67/AtomUI
+      <!-- AddTextInput -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddTextInput(config)</span>
+          <span class="method-desc-short">Single-line text field with placeholder</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Input"</td><td>Label text above the box</td></tr>
+              <tr><td>Placeholder</td><td>string</td><td>"Enter text..."</td><td>Greyed hint text</td></tr>
+              <tr><td>Default</td><td>string</td><td>""</td><td>Initial value</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(text, enterPressed)</td><td>—</td><td>Fires on focus lost</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(string)</code> &nbsp;·&nbsp; <code>:Get() → string</code> &nbsp;·&nbsp; <code>:SetValue(string, silent?)</code> &nbsp;·&nbsp; <code>:ResetValue()</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">ti</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddTextInput</span><span class="op">({</span>
+    <span class="key">Name</span>        <span class="op">=</span> <span class="str">"Webhook URL"</span><span class="op">,</span>
+    <span class="key">Placeholder</span> <span class="op">=</span> <span class="str">"https://your-webhook-url..."</span><span class="op">,</span>
+    <span class="key">Default</span>     <span class="op">=</span> <span class="str">""</span><span class="op">,</span>
+    <span class="key">Flag</span>        <span class="op">=</span> <span class="str">"webhook_url"</span><span class="op">,</span>
+    <span class="key">Callback</span>    <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>text<span class="op">,</span> enter<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>text<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">ti</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="str">"https://..."</span><span class="op">)</span>   <span class="cmt">-- set value</span>
+<span class="fn">ti</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>                <span class="cmt">-- returns current string</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddColorPicker -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddColorPicker(config)</span>
+          <span class="method-desc-short">HSV color picker with live preview swatch</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Color"</td><td>Label text</td></tr>
+              <tr><td>Default</td><td>Color3</td><td>fromRGB(255,100,150)</td><td>Starting color</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(Color3)</td><td>—</td><td>Fires on color change</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(Color3, silent?)</code> &nbsp;·&nbsp; <code>:Get() → Color3</code> &nbsp;·&nbsp; <code>:Close()</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">cp</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddColorPicker</span><span class="op">({</span>
+    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"ESP Color"</span><span class="op">,</span>
+    <span class="key">Default</span>  <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span> <span class="num">0</span><span class="op">,</span> <span class="num">0</span><span class="op">),</span>
+    <span class="key">Flag</span>     <span class="op">=</span> <span class="str">"esp_color"</span><span class="op">,</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>c<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>c<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">cp</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">0</span><span class="op">,</span> <span class="num">255</span><span class="op">,</span> <span class="num">128</span><span class="op">))</span>
+<span class="fn">cp</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>   <span class="cmt">-- returns Color3</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddLabel -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddLabel(config) / group:AddParagraph(config)</span>
+          <span class="method-desc-short">Read-only text display with optional wrapping</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Text / Name</td><td>string</td><td>"Label"</td><td>Displayed text</td></tr>
+              <tr><td>Wrap</td><td>boolean</td><td>false</td><td>Enable word wrapping (auto-sizes height). <code>AddParagraph</code> always wraps.</td></tr>
+            </tbody></table>
+          </div>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddLabel</span><span class="op">({</span> <span class="key">Text</span> <span class="op">=</span> <span class="str">"v1.0.0 — Build 42"</span> <span class="op">})</span>
+
+<span class="fn">group</span><span class="op">:</span><span class="fn">AddParagraph</span><span class="op">({</span>
+    <span class="key">Text</span> <span class="op">=</span> <span class="str">"This is a longer description that will wrap across multiple lines automatically."</span>
+<span class="op">})</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddDivider -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddDivider()</span>
+          <span class="method-desc-short">Horizontal gradient separator line</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <p style="font-size:.875rem;margin-bottom:12px">No config. Inserts a thin gradient line between elements to visually group them.</p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Feature A"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">()</span> <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">group</span><span class="op">:</span><span class="fn">AddDivider</span><span class="op">()</span>
+<span class="fn">group</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Feature B"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">()</span> <span class="kw">end</span> <span class="op">})</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddSpacer -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddSpacer(height?)</span>
+          <span class="method-desc-short">Configurable vertical blank space</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <p style="font-size:.875rem;margin-bottom:12px">Inserts <code>height</code> pixels of vertical space (scaled). Defaults to <code>10</code> if omitted.</p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="fn">group</span><span class="op">:</span><span class="fn">AddSpacer</span><span class="op">()</span>     <span class="cmt">-- 10px gap</span>
+<span class="fn">group</span><span class="op">:</span><span class="fn">AddSpacer</span><span class="op">(</span><span class="num">20</span><span class="op">)</span>   <span class="cmt">-- 20px gap</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddProgressBar -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddProgressBar(config)</span>
+          <span class="method-desc-short">Animated fill bar for 0–1 values</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Progress"</td><td>Label text</td></tr>
+              <tr><td>Value</td><td>number</td><td>0</td><td>Starting fill (0.0 – 1.0)</td></tr>
+              <tr><td>ShowPercent</td><td>boolean</td><td>true</td><td>Show percentage label on the right</td></tr>
+              <tr><td>Color</td><td>Color3</td><td>AccentColor</td><td>Fill bar color</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(number, animate?)</code> &nbsp;·&nbsp; <code>:Get() → number</code> &nbsp;·&nbsp; <code>:SetColor(Color3)</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">bar</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddProgressBar</span><span class="op">({</span>
+    <span class="key">Name</span>        <span class="op">=</span> <span class="str">"Health"</span><span class="op">,</span>
+    <span class="key">Value</span>       <span class="op">=</span> <span class="num">0.75</span><span class="op">,</span>
+    <span class="key">ShowPercent</span> <span class="op">=</span> <span class="bool">true</span><span class="op">,</span>
+    <span class="key">Color</span>       <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">80</span><span class="op">,</span> <span class="num">220</span><span class="op">,</span> <span class="num">100</span><span class="op">),</span>
+<span class="op">})</span>
+<span class="fn">bar</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="num">0.5</span><span class="op">)</span>                               <span class="cmt">-- animate to 50%</span>
+<span class="fn">bar</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="num">0.5</span><span class="op">,</span> <span class="bool">false</span><span class="op">)</span>                         <span class="cmt">-- instant, no tween</span>
+<span class="fn">bar</span><span class="op">:</span><span class="fn">SetColor</span><span class="op">(</span><span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span> <span class="num">80</span><span class="op">,</span> <span class="num">80</span><span class="op">))</span>  <span class="cmt">-- tween fill color</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddNumberInput -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddNumberInput(config)</span>
+          <span class="method-desc-short">− / + stepper with optional bounds</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Number"</td><td>Label text</td></tr>
+              <tr><td>Default</td><td>number</td><td>0</td><td>Starting value</td></tr>
+              <tr><td>Min</td><td>number</td><td>nil</td><td>Lower bound (optional)</td></tr>
+              <tr><td>Max</td><td>number</td><td>nil</td><td>Upper bound (optional)</td></tr>
+              <tr><td>Step</td><td>number</td><td>1</td><td>Amount per click</td></tr>
+              <tr><td>Flag</td><td>string</td><td>auto</td><td>Config system key</td></tr>
+              <tr><td>Callback</td><td>function(number)</td><td>—</td><td>Fires on value change</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(number, silent?)</code> &nbsp;·&nbsp; <code>:Get() → number</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">ni</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddNumberInput</span><span class="op">({</span>
+    <span class="key">Name</span>     <span class="op">=</span> <span class="str">"Max Players"</span><span class="op">,</span>
+    <span class="key">Default</span>  <span class="op">=</span> <span class="num">10</span><span class="op">,</span>
+    <span class="key">Min</span>      <span class="op">=</span> <span class="num">1</span><span class="op">,</span>
+    <span class="key">Max</span>      <span class="op">=</span> <span class="num">100</span><span class="op">,</span>
+    <span class="key">Step</span>     <span class="op">=</span> <span class="num">1</span><span class="op">,</span>
+    <span class="key">Flag</span>     <span class="op">=</span> <span class="str">"max_players"</span><span class="op">,</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">print</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+<span class="fn">ni</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="num">25</span><span class="op">)</span>   <span class="cmt">-- set value (clamped to Min/Max)</span>
+<span class="fn">ni</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>     <span class="cmt">-- returns current number</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddBadge -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">group:AddBadge(config)</span>
+          <span class="method-desc-short">Colored pill for status or metadata</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"Badge"</td><td>Label text on the left</td></tr>
+              <tr><td>Value</td><td>string</td><td>""</td><td>Text shown inside the pill</td></tr>
+              <tr><td>Color</td><td>string</td><td>"blue"</td><td><code>blue</code> · <code>green</code> · <code>red</code> · <code>yellow</code> · <code>purple</code> · <code>gray</code></td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Methods: <code>:Set(value, color?)</code> &nbsp;·&nbsp; <code>:Get() → string</code></p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">badge</span> <span class="op">=</span> <span class="fn">group</span><span class="op">:</span><span class="fn">AddBadge</span><span class="op">({</span>
+    <span class="key">Name</span>  <span class="op">=</span> <span class="str">"Status"</span><span class="op">,</span>
+    <span class="key">Value</span> <span class="op">=</span> <span class="str">"Active"</span><span class="op">,</span>
+    <span class="key">Color</span> <span class="op">=</span> <span class="str">"green"</span><span class="op">,</span>
+<span class="op">})</span>
+<span class="fn">badge</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="str">"Inactive"</span><span class="op">,</span> <span class="str">"red"</span><span class="op">)</span>   <span class="cmt">-- update value and color</span>
+<span class="fn">badge</span><span class="op">:</span><span class="fn">Set</span><span class="op">(</span><span class="str">"Loading"</span><span class="op">)</span>           <span class="cmt">-- update value, keep color</span>
+<span class="fn">badge</span><span class="op">:</span><span class="fn">Get</span><span class="op">()</span>                     <span class="cmt">-- returns current string</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- AddSubTab -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">tab:AddSubTab(config)</span>
+          <span class="method-desc-short">Horizontal pill sub-navigation inside a tab</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <p style="font-size:.875rem;margin-bottom:12px">Renders a pill-bar row at the top of a tab's content area. Each subtab switches between its own groups and elements. Once you call <code>AddSubTab</code> on a tab, that tab's direct columns hide and subtab columns take over.</p>
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>Name</td><td>string</td><td>"SubTab"</td><td>Pill label text</td></tr>
+              <tr><td>Icon</td><td>string</td><td>nil</td><td>Optional lucide icon shown left of label</td></tr>
+            </tbody></table>
+          </div>
+          <p style="margin-bottom:8px;font-size:.8rem;color:var(--muted)">Returns a <strong>subTab object</strong> with: <code>:AddGroup(config)</code> &nbsp;·&nbsp; <code>:Activate()</code> &nbsp;·&nbsp; <code>:Deactivate()</code></p>
+          <p style="margin-bottom:12px;font-size:.8rem;color:var(--muted)">Groups from <code>subTab:AddGroup()</code> support every element method — <code>AddToggle</code>, <code>AddSlider</code>, <code>AddDropdown</code>, etc.</p>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">tab</span> <span class="op">=</span> <span class="fn">section</span><span class="op">:</span><span class="fn">AddTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Settings"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"sliders"</span> <span class="op">})</span>
+
+<span class="cmt">-- General subtab</span>
+<span class="kw">local</span> <span class="fn">general</span> <span class="op">=</span> <span class="fn">tab</span><span class="op">:</span><span class="fn">AddSubTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"General"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"settings"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">g1</span> <span class="op">=</span> <span class="fn">general</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Core"</span><span class="op">,</span> <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"cpu"</span> <span class="op">})</span>
+<span class="fn">g1</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Enabled"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="bool">true</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">g1</span><span class="op">:</span><span class="fn">AddSlider</span><span class="op">({</span>  <span class="key">Name</span> <span class="op">=</span> <span class="str">"Intensity"</span><span class="op">,</span> <span class="key">Min</span> <span class="op">=</span> <span class="num">0</span><span class="op">,</span> <span class="key">Max</span> <span class="op">=</span> <span class="num">100</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="num">50</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+
+<span class="cmt">-- Visual subtab</span>
+<span class="kw">local</span> <span class="fn">visual</span> <span class="op">=</span> <span class="fn">tab</span><span class="op">:</span><span class="fn">AddSubTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Visual"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"eye"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">g2</span> <span class="op">=</span> <span class="fn">visual</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"ESP"</span><span class="op">,</span> <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"box"</span> <span class="op">})</span>
+<span class="fn">g2</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>     <span class="key">Name</span> <span class="op">=</span> <span class="str">"Box ESP"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">g2</span><span class="op">:</span><span class="fn">AddColorPicker</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Color"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span><span class="num">0</span><span class="op">,</span><span class="num">0</span><span class="op">),</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>c<span class="op">)</span> <span class="kw">end</span> <span class="op">})</span>
+
+<span class="cmt">-- Programmatic switch</span>
+<span class="fn">general</span><span class="op">:</span><span class="fn">Activate</span><span class="op">()</span></code></div></div>
+        </div>
+      </div>
+
+      <!-- Custom Background -->
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">Custom Background (Config)</span>
+          <span class="method-desc-short">Set a custom background image with blur overlay</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">
+          <p style="font-size:.875rem;margin-bottom:12px">Set a custom background image for the UI with optional blur overlay and color tint. The main frame gets slight transparency to show the background behind it.</p>
+          <div class="table-wrap" style="margin:0 0 14px">
+            <table><thead><tr><th>Key</th><th>Type</th><th>Default</th><th>Description</th></tr></thead><tbody>
+              <tr><td>CustomBackground</td><td>boolean</td><td>false</td><td>Enable custom background</td></tr>
+              <tr><td>BackgroundImage</td><td>string</td><td>nil</td><td>rbxassetid:// URL for the background</td></tr>
+              <tr><td>BackgroundTransparency</td><td>number</td><td>0.3</td><td>Image transparency (0-1)</td></tr>
+              <tr><td>BackgroundTint</td><td>Color3</td><td>nil</td><td>Optional color tint for the image</td></tr>
+              <tr><td>BackgroundBlur</td><td>boolean</td><td>true</td><td>Show blur overlay behind main frame</td></tr>
+            </tbody></table>
+          </div>
+          <div class="callout tip" style="margin-bottom:14px">
+            <span class="callout-icon">💡</span>
+            <div>Use <strong>rbxassetid://</strong> URLs for background images. Enable <strong>CustomBackground</strong> and set <strong>BackgroundImage</strong> to activate.</div>
+          </div>
+          <div class="code-wrap" style="margin:0"><div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this);event.stopPropagation()"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div><div class="code-body"><code><span class="kw">local</span> <span class="fn">lib</span> <span class="op">=</span> <span class="fn">atom_ui</span><span class="op">.</span><span class="fn">new</span><span class="op">({</span>
+    <span class="key">CustomBackground</span>      <span class="op">=</span> <span class="kw">true</span><span class="op">,</span>
+    <span class="key">BackgroundImage</span>       <span class="op">=</span> <span class="str">"rbxassetid://12345678"</span><span class="op">,</span>
+    <span class="key">BackgroundTransparency</span> <span class="op">=</span> <span class="num">0.3</span><span class="op">,</span>
+    <span class="key">BackgroundTint</span>        <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span> <span class="num">255</span><span class="op">,</span> <span class="num">255</span><span class="op">),</span>
+    <span class="key">BackgroundBlur</span>        <span class="op">=</span> <span class="kw">true</span><span class="op">,</span>
+<span class="op">})</span></code></div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- METHODS -->
+  <div class="doc-section" id="methods">
+    <div class="section-eyebrow">API Reference</div>
+    <h2 class="section-title">Library Methods</h2>
+    <p class="section-lead">All methods available on the <code>lib</code> object returned by <code>atom_ui.new()</code>.</p>
+    <div class="method-list">
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">atom_ui.new(config)</span>
+          <span class="method-desc-short">Create a new UI window</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">Returns a <code>lib</code> object. Pass a config table with <code>Name</code>, <code>AccentColor</code>, and other options.<br><br><code>local lib = atom_ui.new({ Name = "My Script", AutoConfig = true })</code></div>
+      </div>
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">lib:Toggle()</span>
+          <span class="method-desc-short">Toggle UI open/closed</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">Toggles the UI visibility. Equivalent to pressing the configured toggle key.</div>
+      </div>
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">lib:Open() / lib:Close()</span>
+          <span class="method-desc-short">Explicitly open or close the UI</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body"><code>lib:Close()</code> hides the main window and shows a small toggle button. <code>lib:Open()</code> restores the full UI.</div>
+      </div>
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">lib:Notify(config)</span>
+          <span class="method-desc-short">Show a notification</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">Displays a toast notification. See the <a href="#notifications" style="color:var(--accent)">Notifications</a> section for the full config table.<br><br><code>lib:Notify({ Title = "Hi", Description = "Hello", Duration = 3 })</code></div>
+      </div>
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">lib:SetAccentColor(color)</span>
+          <span class="method-desc-short">Change the theme color at runtime</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body"><code>lib:SetAccentColor(Color3.fromRGB(255, 0, 0))</code> — Updates all UI elements to use the new accent color immediately.</div>
+      </div>
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">lib:SetWatermark(config)</span>
+          <span class="method-desc-short">Add a watermark overlay</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body"><code>lib:SetWatermark({ Text = "v1.0", Position = "TopRight" })</code><br>Use <code>lib:SetWatermarkText("v2.0")</code> to update the text without re-creating the watermark.</div>
+      </div>
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">lib:SetSearchFilter(query)</span>
+          <span class="method-desc-short">Filter visible tabs and groups</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body"><code>lib:SetSearchFilter("aim")</code> — Hides tabs/groups that don't match the query. Pass an empty string to reset.</div>
+      </div>
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">lib:SetESPPreview(enabled)</span>
+          <span class="method-desc-short">Toggle the ESP preview panel</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body"><code>lib:SetESPPreview(true)</code> shows a side panel previewing ESP styles in real time.</div>
+      </div>
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">lib:SaveConfig(name) / lib:LoadConfig(name)</span>
+          <span class="method-desc-short">Manually save or load a config</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">Saves/loads all flagged element states to <code>ConfigFolder/name.json</code>.<br><br><code>lib:SaveConfig("legit")</code> — <code>lib:LoadConfig("rage")</code></div>
+      </div>
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">lib:RefreshConfigs()</span>
+          <span class="method-desc-short">List all saved config names</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">Returns a table of config name strings found in the <code>ConfigFolder</code>.<br><br><code>local list = lib:RefreshConfigs()</code></div>
+      </div>
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">lib:Destroy()</span>
+          <span class="method-desc-short">Destroy the UI and clean up</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">Removes all UI instances from the game and disconnects all connections. Typically bound to a panic keybind.</div>
+      </div>
+      <div class="method-row" onclick="toggleMethod(this)">
+        <div class="method-head">
+          <span class="method-tag">atom_ui.Demo()</span>
+          <span class="method-desc-short">Launch the built-in demo UI</span>
+          <span class="method-chevron">▶</span>
+        </div>
+        <div class="method-body">Creates a complete demo window showcasing every element type. Useful for previewing the library before building your own script.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONFIG API -->
+  <div class="doc-section" id="config-api">
+    <div class="section-eyebrow">API Reference</div>
+    <h2 class="section-title">Config System</h2>
+    <p class="section-lead">AtomUI can automatically persist element states to JSON files. Any element with a <code>Flag</code> is tracked.</p>
+    <div class="callout note">
+      <span class="callout-icon">⚠</span>
+      <div>The config system requires your executor to support <code>writefile</code>, <code>readfile</code>, <code>isfolder</code>, <code>makefolder</code>, and <code>listfiles</code>.</div>
+    </div>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
+      <div class="code-body"><code><span class="kw">local</span> <span class="fn">lib</span> <span class="op">=</span> <span class="fn">atom_ui</span><span class="op">.</span><span class="fn">new</span><span class="op">({</span>
+    <span class="key">Name</span>               <span class="op">=</span> <span class="str">"My Script"</span><span class="op">,</span>
+    <span class="key">AutoConfig</span>         <span class="op">=</span> <span class="bool">true</span><span class="op">,</span>
+    <span class="key">ConfigFolder</span>       <span class="op">=</span> <span class="str">"MyConfigs"</span><span class="op">,</span>
+    <span class="key">ShowAutoSaveToggle</span> <span class="op">=</span> <span class="bool">true</span>
+<span class="op">})</span>
+
+<span class="fn">group</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>
+    <span class="key">Name</span>    <span class="op">=</span> <span class="str">"Silent Aim"</span><span class="op">,</span>
+    <span class="key">Flag</span>    <span class="op">=</span> <span class="str">"silent_aim"</span><span class="op">,</span>  <span class="cmt">-- tracked by config system</span>
+    <span class="key">Default</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span>
+    <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="kw">end</span>
+<span class="op">})</span>
+
+<span class="fn">lib</span><span class="op">:</span><span class="fn">SaveConfig</span><span class="op">(</span><span class="str">"legit"</span><span class="op">)</span>
+<span class="fn">lib</span><span class="op">:</span><span class="fn">LoadConfig</span><span class="op">(</span><span class="str">"rage"</span><span class="op">)</span></code></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Method</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>lib:SaveConfig(name)</td><td>Save current values to <code>ConfigFolder/name.json</code></td></tr>
+          <tr><td>lib:LoadConfig(name)</td><td>Load values from <code>ConfigFolder/name.json</code></td></tr>
+          <tr><td>lib:RefreshConfigs()</td><td>Returns a table of saved config names</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div class="doc-section" id="notifications">
+    <div class="section-eyebrow">API Reference</div>
+    <h2 class="section-title">Notifications</h2>
+    <p class="section-lead">Built-in toast notifications with progress bars, icons, and smooth slide animations.</p>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
+      <div class="code-body"><code><span class="fn">lib</span><span class="op">:</span><span class="fn">Notify</span><span class="op">({</span>
+    <span class="key">Title</span>       <span class="op">=</span> <span class="str">"Success"</span><span class="op">,</span>
+    <span class="key">Description</span> <span class="op">=</span> <span class="str">"Settings saved successfully"</span><span class="op">,</span>
+    <span class="key">Duration</span>    <span class="op">=</span> <span class="num">3</span><span class="op">,</span>
+    <span class="key">Icon</span>        <span class="op">=</span> <span class="str">"rbxassetid://10747361219"</span>
+<span class="op">})</span></code></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Property</th><th>Type</th><th>Required</th><th>Description</th></tr></thead>
+        <tbody>
+          <tr><td>Title</td><td>string</td><td>Yes</td><td>Notification title text</td></tr>
+          <tr><td>Description</td><td>string</td><td>No</td><td>Body text beneath the title</td></tr>
+          <tr><td>Duration</td><td>number</td><td>No</td><td>Display time in seconds (default: 3)</td></tr>
+          <tr><td>Icon</td><td>string</td><td>No</td><td>Asset URL — <code>rbxassetid://...</code></td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="callout warn">
+      <span class="callout-icon">⚡</span>
+      <div><strong>Rate limiting:</strong> Duplicate notifications within 0.85 seconds are automatically suppressed to prevent spam.</div>
+    </div>
+  </div>
+
+  <!-- EXAMPLES -->
+  <div class="doc-section" id="examples">
+    <div class="section-eyebrow">Resources</div>
+    <h2 class="section-title">Full Script Template</h2>
+    <p class="section-lead">A production-ready template with Combat, Visuals, and Config sections wired up with <code>_G</code> flags and config save/load buttons.</p>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
+      <div class="code-body"><code><span class="kw">local</span> <span class="fn">atom_ui</span> <span class="op">=</span> <span class="fn">loadstring</span><span class="op">(</span><span class="fn">game</span><span class="op">:</span><span class="fn">HttpGet</span><span class="op">(</span>
+    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"</span>
+<span class="op">))()</span>
+
+<span class="kw">local</span> <span class="fn">lib</span> <span class="op">=</span> <span class="fn">atom_ui</span><span class="op">.</span><span class="fn">new</span><span class="op">({</span>
+    <span class="key">Name</span>         <span class="op">=</span> <span class="str">"Combat Suite"</span><span class="op">,</span>
+    <span class="key">AccentColor</span>  <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span> <span class="num">60</span><span class="op">,</span> <span class="num">60</span><span class="op">),</span>
+    <span class="key">AutoConfig</span>   <span class="op">=</span> <span class="bool">true</span><span class="op">,</span>
+    <span class="key">ConfigFolder</span> <span class="op">=</span> <span class="str">"CombatConfigs"</span>
+<span class="op">})</span>
+
+<span class="kw">local</span> <span class="fn">combat</span>   <span class="op">=</span> <span class="fn">lib</span><span class="op">:</span><span class="fn">AddSection</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Combat"</span><span class="op">,</span>   <span class="key">Icon</span> <span class="op">=</span> <span class="str">"crosshair"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">visuals</span>  <span class="op">=</span> <span class="fn">lib</span><span class="op">:</span><span class="fn">AddSection</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Visuals"</span><span class="op">,</span>  <span class="key">Icon</span> <span class="op">=</span> <span class="str">"eye"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">settings</span> <span class="op">=</span> <span class="fn">lib</span><span class="op">:</span><span class="fn">AddSection</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Settings"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"settings"</span> <span class="op">})</span>
+
+<span class="kw">local</span> <span class="fn">ctab</span> <span class="op">=</span> <span class="fn">combat</span><span class="op">:</span><span class="fn">AddTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Aimbot"</span><span class="op">,</span> <span class="key">Description</span> <span class="op">=</span> <span class="str">"Aim assist"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"target"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">aim</span>  <span class="op">=</span> <span class="fn">ctab</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span>  <span class="key">Name</span> <span class="op">=</span> <span class="str">"Main"</span><span class="op">,</span>    <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span>    <span class="key">Icon</span> <span class="op">=</span> <span class="str">"target"</span> <span class="op">})</span>
+
+<span class="fn">aim</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>  <span class="key">Name</span> <span class="op">=</span> <span class="str">"Silent Aim"</span><span class="op">,</span>     <span class="key">Default</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span> <span class="key">Flag</span> <span class="op">=</span> <span class="str">"silent"</span><span class="op">,</span>  <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">_G</span><span class="op">.</span><span class="fn">Silent</span>       <span class="op">=</span> v <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">aim</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>  <span class="key">Name</span> <span class="op">=</span> <span class="str">"Visible Check"</span><span class="op">,</span>  <span class="key">Default</span> <span class="op">=</span> <span class="bool">true</span><span class="op">,</span>  <span class="key">Flag</span> <span class="op">=</span> <span class="str">"visible"</span><span class="op">, </span><span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">_G</span><span class="op">.</span><span class="fn">VisibleCheck</span> <span class="op">=</span> v <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">aim</span><span class="op">:</span><span class="fn">AddSlider</span><span class="op">({</span>  <span class="key">Name</span> <span class="op">=</span> <span class="str">"FOV"</span><span class="op">,</span>           <span class="key">Min</span> <span class="op">=</span> <span class="num">10</span><span class="op">,</span> <span class="key">Max</span> <span class="op">=</span> <span class="num">500</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="num">150</span><span class="op">,</span> <span class="key">Increment</span> <span class="op">=</span> <span class="num">10</span><span class="op">,</span> <span class="key">Flag</span> <span class="op">=</span> <span class="str">"fov"</span><span class="op">,</span>  <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">_G</span><span class="op">.</span><span class="fn">FOV</span>  <span class="op">=</span> v <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">aim</span><span class="op">:</span><span class="fn">AddDropdown</span><span class="op">({</span><span class="key">Name</span> <span class="op">=</span> <span class="str">"Hit Part"</span><span class="op">,</span>       <span class="key">Options</span> <span class="op">=</span> <span class="op">{</span><span class="str">"Head"</span><span class="op">,</span><span class="str">"HumanoidRootPart"</span><span class="op">,</span><span class="str">"Torso"</span><span class="op">},</span> <span class="key">Default</span> <span class="op">=</span> <span class="str">"Head"</span><span class="op">,</span> <span class="key">Flag</span> <span class="op">=</span> <span class="str">"part"</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">_G</span><span class="op">.</span><span class="fn">Part</span> <span class="op">=</span> v <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">aim</span><span class="op">:</span><span class="fn">AddKeybind</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Aim Key"</span><span class="op">,</span>       <span class="key">Default</span> <span class="op">=</span> <span class="fn">Enum</span><span class="op">.</span><span class="fn">KeyCode</span><span class="op">.</span><span class="fn">Q</span><span class="op">,</span> <span class="key">Mode</span> <span class="op">=</span> <span class="str">"Hold"</span><span class="op">,</span> <span class="key">Flag</span> <span class="op">=</span> <span class="str">"aimkey"</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">_G</span><span class="op">.</span><span class="fn">Aiming</span> <span class="op">=</span> v <span class="kw">end</span> <span class="op">})</span>
+
+<span class="kw">local</span> <span class="fn">vtab</span> <span class="op">=</span> <span class="fn">visuals</span><span class="op">:</span><span class="fn">AddTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"ESP"</span><span class="op">,</span> <span class="key">Description</span> <span class="op">=</span> <span class="str">"Player ESP"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"eye"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">esp</span>  <span class="op">=</span> <span class="fn">vtab</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span>  <span class="key">Name</span> <span class="op">=</span> <span class="str">"ESP"</span><span class="op">,</span>   <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span>    <span class="key">Icon</span> <span class="op">=</span> <span class="str">"eye"</span> <span class="op">})</span>
+
+<span class="fn">esp</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>     <span class="key">Name</span> <span class="op">=</span> <span class="str">"Box ESP"</span><span class="op">,</span>    <span class="key">Default</span> <span class="op">=</span> <span class="bool">true</span><span class="op">,</span>  <span class="key">Flag</span> <span class="op">=</span> <span class="str">"box"</span><span class="op">,</span>        <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">_G</span><span class="op">.</span><span class="fn">BoxESP</span>    <span class="op">=</span> v <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">esp</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>     <span class="key">Name</span> <span class="op">=</span> <span class="str">"Name ESP"</span><span class="op">,</span>   <span class="key">Default</span> <span class="op">=</span> <span class="bool">true</span><span class="op">,</span>  <span class="key">Flag</span> <span class="op">=</span> <span class="str">"name"</span><span class="op">,</span>       <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">_G</span><span class="op">.</span><span class="fn">NameESP</span>   <span class="op">=</span> v <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">esp</span><span class="op">:</span><span class="fn">AddToggle</span><span class="op">({</span>     <span class="key">Name</span> <span class="op">=</span> <span class="str">"Health ESP"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="bool">false</span><span class="op">,</span> <span class="key">Flag</span> <span class="op">=</span> <span class="str">"health"</span><span class="op">,</span>     <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>v<span class="op">)</span> <span class="fn">_G</span><span class="op">.</span><span class="fn">HealthESP</span> <span class="op">=</span> v <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">esp</span><span class="op">:</span><span class="fn">AddColorPicker</span><span class="op">({</span><span class="key">Name</span> <span class="op">=</span> <span class="str">"Team Color"</span><span class="op">,</span>  <span class="key">Default</span> <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">0</span><span class="op">,</span><span class="num">255</span><span class="op">,</span><span class="num">100</span><span class="op">),</span>  <span class="key">Flag</span> <span class="op">=</span> <span class="str">"teamcolor"</span><span class="op">,</span>  <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>c<span class="op">)</span> <span class="fn">_G</span><span class="op">.</span><span class="fn">TeamColor</span>  <span class="op">=</span> c <span class="kw">end</span> <span class="op">})</span>
+<span class="fn">esp</span><span class="op">:</span><span class="fn">AddColorPicker</span><span class="op">({</span><span class="key">Name</span> <span class="op">=</span> <span class="str">"Enemy Color"</span><span class="op">,</span> <span class="key">Default</span> <span class="op">=</span> <span class="fn">Color3</span><span class="op">.</span><span class="fn">fromRGB</span><span class="op">(</span><span class="num">255</span><span class="op">,</span><span class="num">50</span><span class="op">,</span><span class="num">50</span><span class="op">),</span>   <span class="key">Flag</span> <span class="op">=</span> <span class="str">"enemycolor"</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">(</span>c<span class="op">)</span> <span class="fn">_G</span><span class="op">.</span><span class="fn">EnemyColor</span> <span class="op">=</span> c <span class="kw">end</span> <span class="op">})</span>
+
+<span class="kw">local</span> <span class="fn">stab</span> <span class="op">=</span> <span class="fn">settings</span><span class="op">:</span><span class="fn">AddTab</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Config"</span><span class="op">,</span> <span class="key">Description</span> <span class="op">=</span> <span class="str">"Save/Load"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"save"</span> <span class="op">})</span>
+<span class="kw">local</span> <span class="fn">cfg</span>  <span class="op">=</span> <span class="fn">stab</span><span class="op">:</span><span class="fn">AddGroup</span><span class="op">({</span> <span class="key">Name</span> <span class="op">=</span> <span class="str">"Config"</span><span class="op">,</span> <span class="key">Side</span> <span class="op">=</span> <span class="str">"Left"</span><span class="op">,</span> <span class="key">Icon</span> <span class="op">=</span> <span class="str">"hard-drive"</span> <span class="op">})</span>
+
+<span class="fn">cfg</span><span class="op">:</span><span class="fn">AddButton</span><span class="op">({</span><span class="key">Name</span> <span class="op">=</span> <span class="str">"Save Legit"</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">()</span> <span class="fn">lib</span><span class="op">:</span><span class="fn">SaveConfig</span><span class="op">(</span><span class="str">"legit"</span><span class="op">)</span> <span class="fn">lib</span><span class="op">:</span><span class="fn">Notify</span><span class="op">({</span><span class="key">Title</span><span class="op">=</span><span class="str">"Config"</span><span class="op">,</span> <span class="key">Description</span><span class="op">=</span><span class="str">"Legit saved!"</span><span class="op">,</span> <span class="key">Duration</span><span class="op">=</span><span class="num">3</span><span class="op">})</span> <span class="kw">end</span><span class="op">})</span>
+<span class="fn">cfg</span><span class="op">:</span><span class="fn">AddButton</span><span class="op">({</span><span class="key">Name</span> <span class="op">=</span> <span class="str">"Save Rage"</span><span class="op">,</span>  <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">()</span> <span class="fn">lib</span><span class="op">:</span><span class="fn">SaveConfig</span><span class="op">(</span><span class="str">"rage"</span><span class="op">)</span>  <span class="fn">lib</span><span class="op">:</span><span class="fn">Notify</span><span class="op">({</span><span class="key">Title</span><span class="op">=</span><span class="str">"Config"</span><span class="op">,</span> <span class="key">Description</span><span class="op">=</span><span class="str">"Rage saved!"</span><span class="op">,</span>  <span class="key">Duration</span><span class="op">=</span><span class="num">3</span><span class="op">})</span> <span class="kw">end</span><span class="op">})</span>
+<span class="fn">cfg</span><span class="op">:</span><span class="fn">AddButton</span><span class="op">({</span><span class="key">Name</span> <span class="op">=</span> <span class="str">"Load Legit"</span><span class="op">,</span> <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">()</span> <span class="fn">lib</span><span class="op">:</span><span class="fn">LoadConfig</span><span class="op">(</span><span class="str">"legit"</span><span class="op">)</span> <span class="fn">lib</span><span class="op">:</span><span class="fn">Notify</span><span class="op">({</span><span class="key">Title</span><span class="op">=</span><span class="str">"Config"</span><span class="op">,</span> <span class="key">Description</span><span class="op">=</span><span class="str">"Legit loaded!"</span><span class="op">,</span><span class="key">Duration</span><span class="op">=</span><span class="num">3</span><span class="op">})</span> <span class="kw">end</span><span class="op">})</span>
+<span class="fn">cfg</span><span class="op">:</span><span class="fn">AddButton</span><span class="op">({</span><span class="key">Name</span> <span class="op">=</span> <span class="str">"Load Rage"</span><span class="op">,</span>  <span class="key">Callback</span> <span class="op">=</span> <span class="kw">function</span><span class="op">()</span> <span class="fn">lib</span><span class="op">:</span><span class="fn">LoadConfig</span><span class="op">(</span><span class="str">"rage"</span><span class="op">)</span>  <span class="fn">lib</span><span class="op">:</span><span class="fn">Notify</span><span class="op">({</span><span class="key">Title</span><span class="op">=</span><span class="str">"Config"</span><span class="op">,</span> <span class="key">Description</span><span class="op">=</span><span class="str">"Rage loaded!"</span><span class="op">,</span>  <span class="key">Duration</span><span class="op">=</span><span class="num">3</span><span class="op">})</span> <span class="kw">end</span><span class="op">})</span>
+
+<span class="fn">lib</span><span class="op">:</span><span class="fn">Notify</span><span class="op">({</span> <span class="key">Title</span> <span class="op">=</span> <span class="str">"Combat Suite"</span><span class="op">,</span> <span class="key">Description</span> <span class="op">=</span> <span class="str">"Loaded successfully!"</span><span class="op">,</span> <span class="key">Duration</span> <span class="op">=</span> <span class="num">5</span> <span class="op">})</span></code></div>
+    </div>
+  </div>
+
+  <!-- DEMO -->
+  <div class="doc-section" id="demo">
+    <div class="section-eyebrow">Resources</div>
+    <h2 class="section-title">Demo</h2>
+    <p class="section-lead">Run the built-in demo to see all elements in action instantly.</p>
+    <div class="code-wrap">
+      <div class="code-header"><span class="code-lang">Lua</span><button class="copy-btn" onclick="copyCode(this)"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>Copy</button></div>
+      <div class="code-body"><code><span class="kw">local</span> <span class="fn">atom_ui</span> <span class="op">=</span> <span class="fn">loadstring</span><span class="op">(</span><span class="fn">game</span><span class="op">:</span><span class="fn">HttpGet</span><span class="op">(</span>
+    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"</span>
+<span class="op">))()</span>
+
+<span class="fn">atom_ui</span><span class="op">.</span><span class="fn">Demo</span><span class="op">()</span></code></div>
+    </div>
+    <div class="callout tip">
+      <span class="callout-icon">💡</span>
+      <div>The demo creates a full UI with toggles, sliders, dropdowns, keybinds, color pickers, progress bars, number inputs, badges, and more. Press <strong>RightCtrl</strong> to toggle the UI open/closed.</div>
+    </div>
+  </div>
+
+  <!-- FOOTER -->
+  <div class="divider"></div>
+  <div style="color:var(--muted);font-size:.8rem;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px">
+    <span>AtomUI v1.1 — Made by <strong style="color:var(--text)">von63rd</strong> &amp; <strong style="color:var(--text)">ProfessionalFlare</strong></span>
+    <span style="font-family:'IBM Plex Mono',monospace;font-size:.72rem">VoidDeveloper67/AtomUI</span>
+  </div>
+
+</main>
+
+<script>
+function setActive(el) {
+  document.querySelectorAll('.sidebar-item').forEach(i => i.classList.remove('active'));
+  el.classList.add('active');
+}
+
+function toggleMethod(row) {
+  row.classList.toggle('open');
+}
+
+function copyCode(btn) {
+  const block = btn.closest('.code-wrap').querySelector('.code-body code');
+  const text = block.innerText;
+  navigator.clipboard.writeText(text).then(() => {
+    btn.classList.add('copied');
+    btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied`;
+    setTimeout(() => {
+      btn.classList.remove('copied');
+      btn.innerHTML = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg> Copy`;
+    }, 2000);
+  });
+}
+
+// Active sidebar tracking on scroll
+const sections = document.querySelectorAll('.doc-section, .hero');
+const sidebarLinks = document.querySelectorAll('.sidebar-item');
+window.addEventListener('scroll', () => {
+  let current = '';
+  sections.forEach(s => {
+    if (window.scrollY >= s.offsetTop - 80) current = s.id;
+  });
+  sidebarLinks.forEach(link => {
+    link.classList.remove('active');
+    if (link.getAttribute('href') === '#' + current) link.classList.add('active');
+  });
+}, { passive: true });
+</script>
+</body>
+</html>
