@@ -5,7 +5,15 @@ local Window = library.new({
     AutoConfig = true,
     ShowAutoSaveToggle = true,
     ConfigFolder = "MyGameConfigs",
-    Watermark = "My Script v1.0"
+    Watermark = "My Script v1.0",
+    -- Custom Background (NEW)
+    -- CustomBackground = true,
+    -- BackgroundImage = "rbxassetid://YOUR_IMAGE_ID",
+    -- BackgroundTransparency = 0.3,
+    -- BackgroundTint = Color3.fromRGB(255, 255, 255),
+    -- BackgroundBlur = true,
+    -- Toggle Logo Animation
+    -- SpinningLogo = true,
 })
 
 -- Example Sections
@@ -33,7 +41,7 @@ local MiscTab = UtilitySection:AddTab({Name = "Misc", Description = "Miscellaneo
 local MiscGroup = MiscTab:AddGroup({Name = "Tools", Side = "Left", Icon = "tool"})
 
 MiscGroup:AddButton({Name = "Rejoin Server", Callback = function() game:GetService("TeleportService"):Teleport(game.PlaceId) end})
-MiscGroup:AddTextInput({Name = "Webhook URL", Placeholder = "https://discord.com/api/webhooks/...", Default = "", Callback = function(text) print("Webhook:", text) end})
+MiscGroup:AddTextInput({Name = "Webhook URL", Placeholder = "https://your-webhook-url...", Default = "", Callback = function(text) print("Webhook:", text) end})
 
 -- Notifications
 Window:Notify({Title = "Script Loaded", Description = "Press RightCtrl to toggle UI", Duration = 5, Icon = "rbxassetid://10747361219"})
