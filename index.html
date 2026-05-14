@@ -280,6 +280,7 @@
     .hero h1{font-size:36px}
   }
 </style>
+<base target="_blank">
 </head>
 <body>
 
@@ -288,7 +289,7 @@
   <div class="logo">AtomUI</div>
   <div class="logo-badge">v1.0</div>
   <div class="header-right">
-    <a class="gh-btn" href="https://github.com/von63rd/AtomUI" target="_blank">
+    <a class="gh-btn" href="https://github.com/VoidDeveloper67/AtomUI" target="_blank">
       <svg viewBox="0 0 16 16" fill="currentColor"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
       GitHub
     </a>
@@ -342,14 +343,14 @@
   <div class="hero doc-section">
     <div class="hero-tag"><span></span>Roblox UI Library</div>
     <h1>Atom<span class="accent">UI</span></h1>
-    <p class="hero-sub">A feature-rich, public Roblox UI library. Created and maintained by <strong style="color:#fff">von63rd</strong>.</p>
+    <p class="hero-sub">A feature-rich, public Roblox UI library. Created and maintained by <strong style="color:#fff">VoidDeveloper67</strong>.</p>
     <div class="hero-load">
       <div class="hero-load-bar">
         <span>Load via executor</span>
         <button class="copy-btn" id="hero-copy" onclick="copyHero()">Copy</button>
       </div>
       <pre id="hero-code"><span class="kw">local</span> <span class="prop">AtomUI</span> <span class="kw">=</span> <span class="fn">loadstring</span>(<span class="fn">game</span>:<span class="fn">HttpGet</span>(
-    <span class="str">"https://raw.githubusercontent.com/von63rd/AtomUI/main/AtomUI.lua"</span>
+    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"</span>
 ))()</pre>
     </div>
   </div>
@@ -373,7 +374,7 @@
     <div class="code-block">
       <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
       <pre><span class="kw">local</span> <span class="prop">AtomUI</span> <span class="kw">=</span> <span class="fn">loadstring</span>(<span class="fn">game</span>:<span class="fn">HttpGet</span>(
-    <span class="str">"https://raw.githubusercontent.com/von63rd/AtomUI/main/AtomUI.lua"</span>
+    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"</span>
 ))()</pre>
     </div>
   </div>
@@ -384,11 +385,12 @@
     <div class="code-block">
       <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
       <pre><span class="kw">local</span> <span class="prop">AtomUI</span> <span class="kw">=</span> <span class="fn">loadstring</span>(<span class="fn">game</span>:<span class="fn">HttpGet</span>(
-    <span class="str">"https://raw.githubusercontent.com/von63rd/AtomUI/main/AtomUI.lua"</span>
+    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"</span>
 ))()
 
 <span class="kw">local</span> <span class="prop">lib</span> <span class="kw">=</span> <span class="prop">AtomUI</span>.<span class="fn">new</span>({
     <span class="key">Name</span>        <span class="kw">=</span> <span class="str">"VoidHub"</span>,
+    <span class="key">ToggleImage</span> <span class="kw">=</span> <span class="str">"rbxassetid://YOUR_ICON_ID"</span>,  <span class="cmt">-- your hub's logo</span>
     <span class="key">AccentColor</span> <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">138</span>, <span class="num">43</span>, <span class="num">226</span>),
     <span class="key">AutoConfig</span>  <span class="kw">=</span> <span class="bool">true</span>
 })
@@ -430,6 +432,7 @@
       <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
       <pre><span class="kw">local</span> <span class="prop">lib</span> <span class="kw">=</span> <span class="prop">AtomUI</span>.<span class="fn">new</span>({
     <span class="key">Name</span>            <span class="kw">=</span> <span class="str">"VoidHub"</span>,
+    <span class="key">ToggleImage</span>     <span class="kw">=</span> <span class="str">"rbxassetid://YOUR_ICON_ID"</span>,  <span class="cmt">-- your hub's logo</span>
     <span class="key">AccentColor</span>     <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">138</span>, <span class="num">43</span>, <span class="num">226</span>),
     <span class="key">BackgroundColor</span> <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">16</span>, <span class="num">16</span>, <span class="num">16</span>),
     <span class="key">SecondaryColor</span>  <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">18</span>, <span class="num">18</span>, <span class="num">18</span>),
@@ -740,11 +743,12 @@
     <div class="code-block">
       <div class="code-block-header"><span class="code-lang">lua</span><button class="copy-btn" onclick="copyBlock(this)">Copy</button></div>
       <pre><span class="kw">local</span> <span class="prop">AtomUI</span> <span class="kw">=</span> <span class="fn">loadstring</span>(<span class="fn">game</span>:<span class="fn">HttpGet</span>(
-    <span class="str">"https://raw.githubusercontent.com/von63rd/AtomUI/main/AtomUI.lua"</span>
+    <span class="str">"https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"</span>
 ))()
 
 <span class="kw">local</span> <span class="prop">lib</span> <span class="kw">=</span> <span class="prop">AtomUI</span>.<span class="fn">new</span>({
     <span class="key">Name</span>        <span class="kw">=</span> <span class="str">"VoidHub"</span>,
+    <span class="key">ToggleImage</span> <span class="kw">=</span> <span class="str">"rbxassetid://YOUR_ICON_ID"</span>,  <span class="cmt">-- your hub's logo</span>
     <span class="key">AccentColor</span> <span class="kw">=</span> <span class="fn">Color3.fromRGB</span>(<span class="num">138</span>, <span class="num">43</span>, <span class="num">226</span>),
     <span class="key">AutoConfig</span>  <span class="kw">=</span> <span class="bool">true</span>
 })
@@ -795,13 +799,13 @@
 </div>
 
 <footer>
-  Built by <a href="https://github.com/von63rd" target="_blank">von63rd</a> &nbsp;·&nbsp; <a href="https://github.com/von63rd/AtomUI" target="_blank">GitHub</a>
+  Built by <a href="https://github.com/VoidDeveloper67" target="_blank">VoidDeveloper67</a> &nbsp;·&nbsp; <a href="https://github.com/VoidDeveloper67/AtomUI" target="_blank">GitHub</a>
 </footer>
 
 <script>
   // Copy hero
   function copyHero() {
-    const text = `local AtomUI = loadstring(game:HttpGet(\n    "https://raw.githubusercontent.com/von63rd/AtomUI/main/AtomUI.lua"\n))()`;
+    const text = `local AtomUI = loadstring(game:HttpGet(\n    "https://raw.githubusercontent.com/VoidDeveloper67/AtomUI/refs/heads/main/AtomUI.lua"\n))()`;
     navigator.clipboard.writeText(text).then(() => {
       const btn = document.getElementById('hero-copy');
       btn.textContent = 'Copied!';
