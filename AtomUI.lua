@@ -1,4 +1,4 @@
-local safe_clone = cloneref or function(service) return service end
+local safe_clone = type(cloneref) == "function" and cloneref or function(service) return service end
 
 local tween_service     = safe_clone(game:GetService("TweenService"))
 local input_service     = safe_clone(game:GetService("UserInputService"))
