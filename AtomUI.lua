@@ -67,7 +67,7 @@ local default_icons = {
     dropdown_arrow  = "rbxassetid://111626678408582",
 }
 
-local atomic_logo   = "rbxassetid://101833678008843"
+local atomic_logo   = "rbxassetid://113081944862488"
 --#endregion═════════════════════════════════════════════════════════════════════
 
 
