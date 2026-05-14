@@ -32,7 +32,7 @@ end
 
 local function get_icon(name, fallback)
     if not name or name == "" then
-        return fallback or default_icons.tab
+        return fallback or "rbxassetid://94219370057308"  -- default tab icon
     end
 
     if name:match("^rbxassetid://") or name:match("^rbxasset://") or name:match("^http") then
@@ -52,7 +52,7 @@ local function get_icon(name, fallback)
         end
     end
 
-    return fallback or default_icons.tab
+    return fallback or "rbxassetid://94219370057308"  -- default tab icon (safe fallback)
 end
 
 local default_icons = {
@@ -62,7 +62,7 @@ local default_icons = {
     search          = "rbxassetid://10734943674",
     settings        = "rbxassetid://6031280882",
     expand          = "rbxassetid://111626678408582",
-    resize          = get_icon("expand", "rbxassetid://111626678408582"),
+    resize          = "rbxassetid://111626678408582",
     close           = "rbxassetid://10747384394",
     dropdown_arrow  = "rbxassetid://111626678408582",
 }
@@ -798,6 +798,8 @@ function atom_ui.new(config)
     self.config.CustomBackground = self.config.CustomBackground or false
     self.config.BackgroundImage = self.config.BackgroundImage or ""
     self.config.BackgroundTransparency = self.config.BackgroundTransparency or 0.35
+    -- ToggleImage: hub makers can pass a custom rbxassetid:// for the toggle button logo
+    self.config.ToggleImage = self.config.ToggleImage or nil
     
     self.sections = {}
     self.all_tabs = {}
@@ -3703,6 +3705,18 @@ function atom_ui:SetToggleKey(keyCode)
     self.toggleKeyCode = keyCode
 end
 
+-- SetToggleImage: lets hub scripts set a custom image for the toggle button at runtime
+function atom_ui:SetToggleImage(assetId)
+    if not assetId or type(assetId) ~= "string" then return end
+    self.config.ToggleImage = assetId
+    if self.toggle_icon and self.toggle_icon.Parent then
+        self.toggle_icon.Image = assetId
+    end
+    if self.floating_toggle and self.floating_toggle.Parent then
+        self.floating_toggle.Image = assetId
+    end
+end
+
 function atom_ui:BuildToggleButton()
     local btn_size = 55 * scale_factor
 
@@ -3726,7 +3740,7 @@ function atom_ui:BuildToggleButton()
     self.toggle_icon = create("ImageLabel", {
         Name = "ToggleIcon",
         BackgroundTransparency = 1,
-        Image = atomic_logo,
+        Image = self.config.ToggleImage or atomic_logo,
         ImageColor3 = self.config.AccentColor or Color3.fromRGB(2, 133, 255),
         AnchorPoint = Vector2.new(0.5, 0.5),
         Position = UDim2.new(0.5, 0, 0.5, 0),
@@ -3766,7 +3780,7 @@ function atom_ui:BuildWatermark()
     create("UICorner", {CornerRadius = UDim.new(1,0), Parent = self.watermark_frame})
     
     create("ImageLabel", {
-        Image = atomic_logo, BackgroundTransparency = 1,
+        Image = self.config.ToggleImage or atomic_logo, BackgroundTransparency = 1,
         AnchorPoint = Vector2.new(0, 0.5),
         Position = UDim2.new(0, 8, 0.5, 0),
         Size = UDim2.new(0, 20 * scale_factor, 0, 20 * scale_factor),
@@ -4823,7 +4837,7 @@ function atom_ui:BuildMainFrame()
     -- Sleek floating toggle button (appears when UI is closed)
     self.floating_toggle = create("ImageLabel", {
         Name = "AtomFloatingToggle",
-        Image = atomic_logo,
+        Image = self.config.ToggleImage or atomic_logo,
         ImageColor3 = self.config.AccentColor,
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 14, 0, 14),
