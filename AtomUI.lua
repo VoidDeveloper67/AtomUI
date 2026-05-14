@@ -771,6 +771,27 @@ local function destroy_existing_guis()
     end
 end
 
+
+-- FontFace compatibility helper for older executors
+local _fontCache = {}
+local function make_font(family, weight, style)
+    weight = weight or Enum.FontWeight.Regular
+    style = style or Enum.FontStyle.Normal
+    local cacheKey = tostring(family) .. ":" .. tostring(weight.Value) .. ":" .. tostring(style.Value)
+    if _fontCache[cacheKey] then return _fontCache[cacheKey] end
+    local ok, result = pcall(function()
+        return Font.new(family, weight, style)
+    end)
+    if ok and result then
+        _fontCache[cacheKey] = result
+        return result
+    end
+    -- Fallback: return the family string; create() will use FontFace property which
+    -- also falls back gracefully on older clients
+    _fontCache[cacheKey] = family
+    return family
+end
+
 local function cleanup_previous_instance()
     local sharedEnv = get_shared_env()
     local previousInstance = rawget(sharedEnv, RUNTIME_INSTANCE_KEY)
@@ -799,6 +820,9 @@ function atom_ui.new(config)
     self.config.BackgroundImage = self.config.BackgroundImage or ""
     self.config.BackgroundTransparency = self.config.BackgroundTransparency or 0.35
     
+    self.config.CustomLogo = self.config.CustomLogo or nil
+    self.config.CustomLogoEnabled = self.config.CustomLogoEnabled or false
+    self.config.SpinningLogo = self.config.SpinningLogo ~= false  -- default true
     self.sections = {}
     self.all_tabs = {}
     self.active_tab = nil
@@ -863,6 +887,11 @@ function atom_ui.new(config)
         HideName = false
     }
     self._fontPresets = {
+    self._transparentBackground = false
+    self._bgImageInput = nil  -- reference to settings panel BG image textbox
+    self._logoImageInput = nil  -- reference to settings panel logo textbox
+    self._customBgToggleRef = nil
+    self._customLogoToggleRef = nil
         {Name = "Gotham", EnumFont = Enum.Font.Gotham, Family = "rbxasset://fonts/families/GothamSSm.json", Weight = Enum.FontWeight.SemiBold},
         {Name = "Gotham Medium", EnumFont = Enum.Font.GothamMedium, Family = "rbxasset://fonts/families/GothamSSm.json", Weight = Enum.FontWeight.Medium},
         {Name = "Montserrat", EnumFont = Enum.Font.Gotham, Family = "rbxasset://fonts/families/Montserrat.json", Weight = Enum.FontWeight.SemiBold},
@@ -1327,22 +1356,6 @@ function atom_ui:_SetOverlayMode(mode)
     end
 end
 
-function atom_ui:_SetCustomBackgroundEnabled(enabled)
-    if not self.main_frame then return end
-    if enabled and self.config.BackgroundImage then
-        if self.bg_image then
-            self.bg_image.Visible = true
-            if self.bg_blur then self.bg_blur.Visible = true end
-        end
-        self.main_frame.BackgroundTransparency = 0.08
-    else
-        if self.bg_image then
-            self.bg_image.Visible = false
-            if self.bg_blur then self.bg_blur.Visible = false end
-        end
-        self.main_frame.BackgroundTransparency = 0
-    end
-end
 
 function atom_ui:_SetBackgroundEffectsEnabled(enabled)
     self._uiVisualSettings.BackgroundEffects = enabled == true
@@ -1400,6 +1413,139 @@ function atom_ui:_SetTextGradientEnabled(enabled)
                         Parent = label
                     })
                 end
+
+-- Image URL resolver that supports rbxassetid://, http URLs, and raw numeric IDs
+function atom_ui:resolve_image_url(input)
+    if type(input) ~= "string" and type(input) ~= "number" then return "" end
+    local str = tostring(input):gsub("^%s*(.-)%s*$", "%1")  -- trim
+    if str == "" then return "" end
+    -- Already a valid rbxassetid:// or http URL
+    if str:match("^rbxassetid://") or str:match("^https?://") or str:match("^rbxthumb://") or str:match("^rbxasset://") then
+        return str
+    end
+    -- Raw numeric ID (Roblox decal/image ID)
+    if str:match("^%d+$") then
+        -- Try rbxassetid:// format first (most compatible)
+        return "rbxassetid://" .. str
+    end
+    -- Direct URL without protocol (add https://)
+    if str:match("^[%w%.%-]+%.[%w]+/") or str:match("^cdn%.") or str:match("^i%.imgur%.") or str:match("^media%.discord") then
+        return "https://" .. str
+    end
+    return str
+end
+
+function atom_ui:SetBackgroundImageEnhanced(imageInput, transparency)
+    local resolved = self:resolve_image_url(imageInput)
+    if resolved == "" then
+        self:ClearCustomBackground()
+        return
+    end
+    self.config.CustomBackground = true
+    self.config.BackgroundImage = resolved
+    if type(transparency) == "number" then
+        self.config.BackgroundTransparency = math.clamp(transparency, 0, 1)
+    end
+    if self.bg_image_label then
+        self.bg_image_label.Image = resolved
+        self.bg_image_label.ImageTransparency = self.config.BackgroundTransparency or 0.35
+        self.bg_image_frame.Visible = true
+    end
+    self:_ApplyOpenCloseVisuals(self._is_open)
+    -- Update settings panel if exists
+    if self._bgImageInput then
+        self._bgImageInput.Text = tostring(imageInput)
+    end
+    if self._customBgToggleRef then
+        self._customBgToggleRef:Set(true, true)
+    end
+end
+
+function atom_ui:SetTransparentBackground(enabled, transparency)
+    self._transparentBackground = enabled == true
+    if self._transparentBackground then
+        self.config.BackgroundTransparency = math.clamp(tonumber(transparency) or 0.7, 0, 1)
+        if self.bg_image_overlay then
+            self.bg_image_overlay.BackgroundTransparency = self.config.BackgroundTransparency
+        end
+        if self.main_frame then
+            self.main_frame.BackgroundTransparency = self.config.BackgroundTransparency + 0.1
+        end
+    else
+        self.config.BackgroundTransparency = 0.45
+        if self.bg_image_overlay then
+            self.bg_image_overlay.BackgroundTransparency = 0.45
+        end
+        if self.main_frame then
+            self.main_frame.BackgroundTransparency = self._is_open and 0.08 or 0.08
+        end
+    end
+end
+
+function atom_ui:SetCustomLogo(imageInput, shouldSpin)
+    local resolved = self:resolve_image_url(imageInput)
+    if resolved == "" then return end
+    self.config.CustomLogo = resolved
+    self.config.CustomLogoEnabled = true
+    if shouldSpin ~= nil then
+        self.config.SpinningLogo = shouldSpin == true
+function atom_ui:SetCustomBackground(imageId, transparency)
+    local resolved = self:resolve_image_url(imageId)
+    if resolved == "" then return end
+    self.config.CustomBackground = true
+    self.config.BackgroundImage = resolved
+    if type(transparency) == "number" then
+        self.config.BackgroundTransparency = math.clamp(transparency, 0, 1)
+    end
+    self:_SetCustomBackgroundEnabled(true, self.config.BackgroundImage)
+end
+    if self._customLogoToggleRef then
+        self._customLogoToggleRef:Set(true, true)
+    end
+    if self._logoImageInput then
+        self._logoImageInput.Text = tostring(imageInput)
+    end
+end
+
+function atom_ui:ClearCustomLogo()
+    self.config.CustomLogo = nil
+    self.config.CustomLogoEnabled = false
+    if self.floating_toggle then
+        self.floating_toggle.Image = atomic_logo
+    end
+    if self._customLogoToggleRef then
+        self._customLogoToggleRef:Set(false, true)
+    end
+    if self._logoImageInput then
+        self._logoImageInput.Text = ""
+    end
+end
+
+function atom_ui:_SetCustomLogoEnabled(enabled)
+    self.config.CustomLogoEnabled = enabled == true
+    if self.floating_toggle then
+        if enabled and self.config.CustomLogo then
+            self.floating_toggle.Image = self.config.CustomLogo
+        else
+            self.floating_toggle.Image = atomic_logo
+        end
+    end
+end
+
+function atom_ui:ToggleCustomLogo()
+    self:_SetCustomLogoEnabled(not self.config.CustomLogoEnabled)
+    return self.config.CustomLogoEnabled
+end
+
+function atom_ui:SetUIScale(scale)
+    scale = tonumber(scale)
+    if not scale then return end
+    scale = math.clamp(scale, 0.5, 2.0)
+    self.config.Scale = scale
+    if self._uiScaleObj then
+        self._uiScaleObj.Scale = scale
+    end
+end
                 gradientObj.Rotation = 0
                 gradientObj.Color = ColorSequence.new({
                     ColorSequenceKeypoint.new(0, accent:Lerp(Color3.new(1, 1, 1), 0.2)),
@@ -1448,6 +1594,22 @@ function atom_ui:_SetCustomBackgroundEnabled(enabled, imageId)
     if self.bg_image_frame then
         self.bg_image_frame.Visible = useBg
     end
+    if useBg and self.bg_image_label then
+        local rawInput = type(imageId) == "string" and imageId or self.config.BackgroundImage or ""
+        local img = self:resolve_image_url(rawInput)
+        if img ~= "" then
+            self.bg_image_label.Image = img
+        end
+        self.bg_image_label.ImageTransparency = self.config.BackgroundTransparency or 0.35
+    end
+    if self.bg_image_overlay then
+        self.bg_image_overlay.BackgroundTransparency = self.config.BackgroundTransparency or 0.45
+    end
+    -- Update transparency based on transparent background setting
+    if self._transparentBackground and self.main_frame then
+        self.main_frame.BackgroundTransparency = (self.config.BackgroundTransparency or 0.45) + 0.1
+    end
+end
     if useBg and self.bg_image_label then
         local img = type(imageId) == "string" and imageId or self.config.BackgroundImage or ""
         if img ~= "" then
@@ -4299,7 +4461,7 @@ function atom_ui:BuildMainFrame()
     })
 
     local settingsPanelWidth = 185 * scale_factor
-    local settingsPanelHeight = 310 * scale_factor
+    local settingsPanelHeight = 400 * scale_factor
     self.settings_open = false
 
     self.settings_btn_frame = create("Frame", {
@@ -4459,6 +4621,16 @@ function atom_ui:BuildMainFrame()
         self.config.CustomBackground = enabled
         self:_SetCustomBackgroundEnabled(enabled)
     end)
+    local transparentBgToggleRef = createSettingsToggle("Transparent BG", self._transparentBackground or false, function(enabled)
+        self._transparentBackground = enabled
+        self:SetTransparentBackground(enabled)
+    end)
+    local customLogoToggleRef = createSettingsToggle("Custom Logo", self.config.CustomLogoEnabled or false, function(enabled)
+        self:_SetCustomLogoEnabled(enabled)
+    end)
+    -- Store references for later updates
+    self._customBgToggleRef = customBgToggleRef
+    self._customLogoToggleRef = customLogoToggleRef
     local autoSaveToggleRef = nil
     if self.config.ShowAutoSaveToggle ~= false then
         autoSaveToggleRef = createSettingsToggle("Auto Save Config", self._autoConfigEnabled, function(enabled)
@@ -4473,7 +4645,7 @@ function atom_ui:BuildMainFrame()
         end)
     end
 
-    self.settings_toggle_refs = {blurToggleRef, overlayToggleRef, bgFxToggleRef, gradientToggleRef, espPreviewToggleRef, hideNameToggleRef, customBgToggleRef}
+    self.settings_toggle_refs = {blurToggleRef, overlayToggleRef, bgFxToggleRef, gradientToggleRef, espPreviewToggleRef, hideNameToggleRef, customBgToggleRef, transparentBgToggleRef, customLogoToggleRef}
     if autoSaveToggleRef then
         table.insert(self.settings_toggle_refs, autoSaveToggleRef)
     end
@@ -4805,9 +4977,178 @@ function atom_ui:BuildMainFrame()
             overlayToggleRef:Set(self._uiVisualSettings.Snow, true)
             bgFxToggleRef:Set(self._uiVisualSettings.BackgroundEffects, true)
             gradientToggleRef:Set(self._uiVisualSettings.TextGradient, true)
+            if transparentBgToggleRef then transparentBgToggleRef:Set(self._transparentBackground or false, true) end
+            if customLogoToggleRef then customLogoToggleRef:Set(self.config.CustomLogoEnabled or false, true) end
         end)
     end
 
+
+    -- Custom Background Image input row
+    local bgImageRow = create("Frame", {
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 10, 0, rowY + 30 * scale_factor),
+        Size = UDim2.new(1, -20, 0, 22 * scale_factor),
+        Parent = self.settings_panel
+    })
+    create("TextLabel", {
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        Text = "BG Image",
+        TextColor3 = Color3.fromRGB(150, 150, 150),
+        BackgroundTransparency = 1,
+        Size = UDim2.new(0, 62 * scale_factor, 1, 0),
+        TextSize = 12 * scale_factor,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = bgImageRow
+    })
+    local bgImageInput = create("TextBox", {
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        Text = self.config.BackgroundImage or "",
+        PlaceholderText = "rbxassetid:// or URL...",
+        PlaceholderColor3 = Color3.fromRGB(60, 60, 60),
+        TextColor3 = Color3.fromRGB(210, 210, 210),
+        TextSize = 11 * scale_factor,
+        BackgroundColor3 = Color3.fromRGB(28, 28, 28),
+        Position = UDim2.new(0, 66 * scale_factor, 0, 0),
+        Size = UDim2.new(1, -68 * scale_factor, 1, 0),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ClearTextOnFocus = false,
+        Parent = bgImageRow,
+    })
+    create("UICorner", {CornerRadius = UDim.new(0, 5), Parent = bgImageInput})
+    create("UIStroke", {Color = Color3.fromRGB(44, 44, 44), Parent = bgImageInput})
+    create("UIPadding", {PaddingLeft = UDim.new(0, 6), Parent = bgImageInput})
+    self._bgImageInput = bgImageInput
+    bgImageInput.FocusLost:Connect(function()
+        local text = bgImageInput.Text:gsub("^%s*(.-)%s*$", "%1")
+        if text ~= "" then
+            self:SetBackgroundImageEnhanced(text)
+        else
+            self:ClearCustomBackground()
+        end
+    end)
+
+    rowY = rowY + 28 * scale_factor
+
+    -- Custom Logo Image input row
+    local logoImageRow = create("Frame", {
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 10, 0, rowY + 30 * scale_factor),
+        Size = UDim2.new(1, -20, 0, 22 * scale_factor),
+        Parent = self.settings_panel
+    })
+    create("TextLabel", {
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        Text = "Logo",
+        TextColor3 = Color3.fromRGB(150, 150, 150),
+        BackgroundTransparency = 1,
+        Size = UDim2.new(0, 62 * scale_factor, 1, 0),
+        TextSize = 12 * scale_factor,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = logoImageRow
+    })
+    local logoImageInput = create("TextBox", {
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        Text = self.config.CustomLogo or "",
+        PlaceholderText = "rbxassetid:// or URL...",
+        PlaceholderColor3 = Color3.fromRGB(60, 60, 60),
+        TextColor3 = Color3.fromRGB(210, 210, 210),
+        TextSize = 11 * scale_factor,
+        BackgroundColor3 = Color3.fromRGB(28, 28, 28),
+        Position = UDim2.new(0, 66 * scale_factor, 0, 0),
+        Size = UDim2.new(1, -68 * scale_factor, 1, 0),
+        TextXAlignment = Enum.TextXAlignment.Left,
+        ClearTextOnFocus = false,
+        Parent = logoImageRow,
+    })
+    create("UICorner", {CornerRadius = UDim.new(0, 5), Parent = logoImageInput})
+    create("UIStroke", {Color = Color3.fromRGB(44, 44, 44), Parent = logoImageInput})
+    create("UIPadding", {PaddingLeft = UDim.new(0, 6), Parent = logoImageInput})
+    self._logoImageInput = logoImageInput
+    logoImageInput.FocusLost:Connect(function()
+        local text = logoImageInput.Text:gsub("^%s*(.-)%s*$", "%1")
+        if text ~= "" then
+            self:SetCustomLogo(text)
+        else
+            self:ClearCustomLogo()
+        end
+    end)
+
+    rowY = rowY + 28 * scale_factor
+
+    -- UI Scale slider row
+    local uiScaleRow = create("Frame", {
+        BackgroundTransparency = 1,
+        Position = UDim2.new(0, 10, 0, rowY + 30 * scale_factor),
+        Size = UDim2.new(1, -20, 0, 20 * scale_factor),
+        Parent = self.settings_panel
+    })
+    create("TextLabel", {
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        Text = "UI Scale",
+        TextColor3 = Color3.fromRGB(150, 150, 150),
+        BackgroundTransparency = 1,
+        Size = UDim2.new(0, 62 * scale_factor, 1, 0),
+        TextSize = 12 * scale_factor,
+        TextXAlignment = Enum.TextXAlignment.Left,
+        Parent = uiScaleRow
+    })
+    local uiScaleValueLabel = create("TextLabel", {
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        Text = tostring(math.floor((self.config.Scale or 1) * 100)) .. "%",
+        TextColor3 = Color3.fromRGB(210, 210, 210),
+        BackgroundTransparency = 1,
+        Position = UDim2.new(1, -38 * scale_factor, 0, 0),
+        Size = UDim2.new(0, 36 * scale_factor, 1, 0),
+        TextSize = 12 * scale_factor,
+        TextXAlignment = Enum.TextXAlignment.Right,
+        Parent = uiScaleRow
+    })
+    local uiScaleMinus = create("TextButton", {
+        Text = "-", TextColor3 = Color3.fromRGB(150, 150, 150),
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        TextSize = 14 * scale_factor,
+        BackgroundColor3 = Color3.fromRGB(28, 28, 28),
+        Position = UDim2.new(0, 66 * scale_factor, 0, 0),
+        Size = UDim2.new(0, 22 * scale_factor, 0, 20 * scale_factor),
+        Parent = uiScaleRow,
+    })
+    create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = uiScaleMinus})
+    local uiScalePlus = create("TextButton", {
+        Text = "+", TextColor3 = Color3.fromRGB(150, 150, 150),
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        TextSize = 14 * scale_factor,
+        BackgroundColor3 = Color3.fromRGB(28, 28, 28),
+        Position = UDim2.new(0, 92 * scale_factor, 0, 0),
+        Size = UDim2.new(0, 22 * scale_factor, 0, 20 * scale_factor),
+        Parent = uiScaleRow,
+    })
+    create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = uiScalePlus})
+    local uiScaleReset = create("TextButton", {
+        Text = "Reset", TextColor3 = Color3.fromRGB(150, 150, 150),
+        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
+        TextSize = 10 * scale_factor,
+        BackgroundColor3 = Color3.fromRGB(28, 28, 28),
+        Position = UDim2.new(0, 118 * scale_factor, 0, 0),
+        Size = UDim2.new(0, 34 * scale_factor, 0, 20 * scale_factor),
+        Parent = uiScaleRow,
+    })
+    create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = uiScaleReset})
+    uiScaleMinus.MouseButton1Click:Connect(function()
+        local newScale = math.clamp((self.config.Scale or 1) - 0.05, 0.5, 2.0)
+        self:SetUIScale(newScale)
+        uiScaleValueLabel.Text = tostring(math.floor(newScale * 100)) .. "%"
+    end)
+    uiScalePlus.MouseButton1Click:Connect(function()
+        local newScale = math.clamp((self.config.Scale or 1) + 0.05, 0.5, 2.0)
+        self:SetUIScale(newScale)
+        uiScaleValueLabel.Text = tostring(math.floor(newScale * 100)) .. "%"
+    end)
+    uiScaleReset.MouseButton1Click:Connect(function()
+        self:SetUIScale(1)
+        uiScaleValueLabel.Text = "100%"
+    end)
+
+    rowY = rowY + 28 * scale_factor
     local function setSettingsPanelOpen(openState)
         self.settings_open = openState == true
         if self.settings_open then
@@ -8378,7 +8719,12 @@ function atom_ui.Demo()
         Name = "AtomUI Demo",
         AccentColor = Color3.fromRGB(2, 133, 255),
         AutoConfig = false
-    })
+        AutoConfig = false,
+        -- Custom background image (supports rbxassetid://, numeric ID, or direct URL)
+        -- BackgroundImage = "rbxassetid://12345678",
+        -- CustomLogo = "rbxassetid://87654321",  -- Custom floating toggle logo
+        -- SpinningLogo = true,  -- Spin the floating toggle logo
+        -- Scale = 1.0,  -- UI scale (0.5 to 2.0)
 
     local main_section = lib:AddSection({Name = "Main", Icon = "sword"})
 
@@ -8598,6 +8944,24 @@ function atom_ui.Demo()
         Duration = 5
     })
 
+
+    -- Demo: New custom background and logo features
+    --[[ Examples of new features:
+    -- Set custom background via Roblox asset ID (numeric)
+    lib:SetBackgroundImageEnhanced("12345678")  -- rbxassetid://12345678
+    -- Set custom background via rbxassetid:// URL
+    lib:SetBackgroundImageEnhanced("rbxassetid://12345678")
+    -- Set custom background via direct image URL
+    lib:SetBackgroundImageEnhanced("https://example.com/bg.jpg")
+    -- Set transparent background
+    lib:SetTransparentBackground(true, 0.7)
+    -- Set custom logo via asset ID
+    lib:SetCustomLogo("12345678")
+    -- Set custom logo via URL
+    lib:SetCustomLogo("https://example.com/logo.png", true)  -- true = spinning
+    -- Change UI scale
+    lib:SetUIScale(1.2)
+    --]]
     return lib
 end
 
