@@ -1,4 +1,4 @@
-local safe_clone = type(cloneref) == "function" and cloneref or function(service) return service end
+local safe_clone = cloneref or function(service) return service end
 
 local tween_service     = safe_clone(game:GetService("TweenService"))
 local input_service     = safe_clone(game:GetService("UserInputService"))
@@ -771,27 +771,6 @@ local function destroy_existing_guis()
     end
 end
 
-
--- FontFace compatibility helper for older executors
-local _fontCache = {}
-local function make_font(family, weight, style)
-    weight = weight or Enum.FontWeight.Regular
-    style = style or Enum.FontStyle.Normal
-    local cacheKey = tostring(family) .. ":" .. tostring(weight.Value) .. ":" .. tostring(style.Value)
-    if _fontCache[cacheKey] then return _fontCache[cacheKey] end
-    local ok, result = pcall(function()
-        return Font.new(family, weight, style)
-    end)
-    if ok and result then
-        _fontCache[cacheKey] = result
-        return result
-    end
-    -- Fallback: return the family string; create() will use FontFace property which
-    -- also falls back gracefully on older clients
-    _fontCache[cacheKey] = family
-    return family
-end
-
 local function cleanup_previous_instance()
     local sharedEnv = get_shared_env()
     local previousInstance = rawget(sharedEnv, RUNTIME_INSTANCE_KEY)
@@ -820,9 +799,6 @@ function atom_ui.new(config)
     self.config.BackgroundImage = self.config.BackgroundImage or ""
     self.config.BackgroundTransparency = self.config.BackgroundTransparency or 0.35
     
-    self.config.CustomLogo = self.config.CustomLogo or nil
-    self.config.CustomLogoEnabled = self.config.CustomLogoEnabled or false
-    self.config.SpinningLogo = self.config.SpinningLogo ~= false  -- default true
     self.sections = {}
     self.all_tabs = {}
     self.active_tab = nil
@@ -887,11 +863,6 @@ function atom_ui.new(config)
         HideName = false
     }
     self._fontPresets = {
-    self._transparentBackground = false
-    self._bgImageInput = nil  -- reference to settings panel BG image textbox
-    self._logoImageInput = nil  -- reference to settings panel logo textbox
-    self._customBgToggleRef = nil
-    self._customLogoToggleRef = nil
         {Name = "Gotham", EnumFont = Enum.Font.Gotham, Family = "rbxasset://fonts/families/GothamSSm.json", Weight = Enum.FontWeight.SemiBold},
         {Name = "Gotham Medium", EnumFont = Enum.Font.GothamMedium, Family = "rbxasset://fonts/families/GothamSSm.json", Weight = Enum.FontWeight.Medium},
         {Name = "Montserrat", EnumFont = Enum.Font.Gotham, Family = "rbxasset://fonts/families/Montserrat.json", Weight = Enum.FontWeight.SemiBold},
@@ -952,9 +923,7 @@ function atom_ui.new(config)
     
     self:BuildUI()
     rawset(get_shared_env(), RUNTIME_INSTANCE_KEY, self)
-
-    print("Loaded AtomUI v1.1 | For credits and documentation go to tinyurl.com/atomui")
-
+    
     return self
 end
 
@@ -1356,7 +1325,6 @@ function atom_ui:_SetOverlayMode(mode)
     end
 end
 
-
 function atom_ui:_SetBackgroundEffectsEnabled(enabled)
     self._uiVisualSettings.BackgroundEffects = enabled == true
     if not self._uiVisualSettings.BackgroundEffects then
@@ -1413,139 +1381,6 @@ function atom_ui:_SetTextGradientEnabled(enabled)
                         Parent = label
                     })
                 end
-
--- Image URL resolver that supports rbxassetid://, http URLs, and raw numeric IDs
-function atom_ui:resolve_image_url(input)
-    if type(input) ~= "string" and type(input) ~= "number" then return "" end
-    local str = tostring(input):gsub("^%s*(.-)%s*$", "%1")  -- trim
-    if str == "" then return "" end
-    -- Already a valid rbxassetid:// or http URL
-    if str:match("^rbxassetid://") or str:match("^https?://") or str:match("^rbxthumb://") or str:match("^rbxasset://") then
-        return str
-    end
-    -- Raw numeric ID (Roblox decal/image ID)
-    if str:match("^%d+$") then
-        -- Try rbxassetid:// format first (most compatible)
-        return "rbxassetid://" .. str
-    end
-    -- Direct URL without protocol (add https://)
-    if str:match("^[%w%.%-]+%.[%w]+/") or str:match("^cdn%.") or str:match("^i%.imgur%.") or str:match("^media%.discord") then
-        return "https://" .. str
-    end
-    return str
-end
-
-function atom_ui:SetBackgroundImageEnhanced(imageInput, transparency)
-    local resolved = self:resolve_image_url(imageInput)
-    if resolved == "" then
-        self:ClearCustomBackground()
-        return
-    end
-    self.config.CustomBackground = true
-    self.config.BackgroundImage = resolved
-    if type(transparency) == "number" then
-        self.config.BackgroundTransparency = math.clamp(transparency, 0, 1)
-    end
-    if self.bg_image_label then
-        self.bg_image_label.Image = resolved
-        self.bg_image_label.ImageTransparency = self.config.BackgroundTransparency or 0.35
-        self.bg_image_frame.Visible = true
-    end
-    self:_ApplyOpenCloseVisuals(self._is_open)
-    -- Update settings panel if exists
-    if self._bgImageInput then
-        self._bgImageInput.Text = tostring(imageInput)
-    end
-    if self._customBgToggleRef then
-        self._customBgToggleRef:Set(true, true)
-    end
-end
-
-function atom_ui:SetTransparentBackground(enabled, transparency)
-    self._transparentBackground = enabled == true
-    if self._transparentBackground then
-        self.config.BackgroundTransparency = math.clamp(tonumber(transparency) or 0.7, 0, 1)
-        if self.bg_image_overlay then
-            self.bg_image_overlay.BackgroundTransparency = self.config.BackgroundTransparency
-        end
-        if self.main_frame then
-            self.main_frame.BackgroundTransparency = self.config.BackgroundTransparency + 0.1
-        end
-    else
-        self.config.BackgroundTransparency = 0.45
-        if self.bg_image_overlay then
-            self.bg_image_overlay.BackgroundTransparency = 0.45
-        end
-        if self.main_frame then
-            self.main_frame.BackgroundTransparency = self._is_open and 0.08 or 0.08
-        end
-    end
-end
-
-function atom_ui:SetCustomLogo(imageInput, shouldSpin)
-    local resolved = self:resolve_image_url(imageInput)
-    if resolved == "" then return end
-    self.config.CustomLogo = resolved
-    self.config.CustomLogoEnabled = true
-    if shouldSpin ~= nil then
-        self.config.SpinningLogo = shouldSpin == true
-function atom_ui:SetCustomBackground(imageId, transparency)
-    local resolved = self:resolve_image_url(imageId)
-    if resolved == "" then return end
-    self.config.CustomBackground = true
-    self.config.BackgroundImage = resolved
-    if type(transparency) == "number" then
-        self.config.BackgroundTransparency = math.clamp(transparency, 0, 1)
-    end
-    self:_SetCustomBackgroundEnabled(true, self.config.BackgroundImage)
-end
-    if self._customLogoToggleRef then
-        self._customLogoToggleRef:Set(true, true)
-    end
-    if self._logoImageInput then
-        self._logoImageInput.Text = tostring(imageInput)
-    end
-end
-
-function atom_ui:ClearCustomLogo()
-    self.config.CustomLogo = nil
-    self.config.CustomLogoEnabled = false
-    if self.floating_toggle then
-        self.floating_toggle.Image = atomic_logo
-    end
-    if self._customLogoToggleRef then
-        self._customLogoToggleRef:Set(false, true)
-    end
-    if self._logoImageInput then
-        self._logoImageInput.Text = ""
-    end
-end
-
-function atom_ui:_SetCustomLogoEnabled(enabled)
-    self.config.CustomLogoEnabled = enabled == true
-    if self.floating_toggle then
-        if enabled and self.config.CustomLogo then
-            self.floating_toggle.Image = self.config.CustomLogo
-        else
-            self.floating_toggle.Image = atomic_logo
-        end
-    end
-end
-
-function atom_ui:ToggleCustomLogo()
-    self:_SetCustomLogoEnabled(not self.config.CustomLogoEnabled)
-    return self.config.CustomLogoEnabled
-end
-
-function atom_ui:SetUIScale(scale)
-    scale = tonumber(scale)
-    if not scale then return end
-    scale = math.clamp(scale, 0.5, 2.0)
-    self.config.Scale = scale
-    if self._uiScaleObj then
-        self._uiScaleObj.Scale = scale
-    end
-end
                 gradientObj.Rotation = 0
                 gradientObj.Color = ColorSequence.new({
                     ColorSequenceKeypoint.new(0, accent:Lerp(Color3.new(1, 1, 1), 0.2)),
@@ -1594,22 +1429,6 @@ function atom_ui:_SetCustomBackgroundEnabled(enabled, imageId)
     if self.bg_image_frame then
         self.bg_image_frame.Visible = useBg
     end
-    if useBg and self.bg_image_label then
-        local rawInput = type(imageId) == "string" and imageId or self.config.BackgroundImage or ""
-        local img = self:resolve_image_url(rawInput)
-        if img ~= "" then
-            self.bg_image_label.Image = img
-        end
-        self.bg_image_label.ImageTransparency = self.config.BackgroundTransparency or 0.35
-    end
-    if self.bg_image_overlay then
-        self.bg_image_overlay.BackgroundTransparency = self.config.BackgroundTransparency or 0.45
-    end
-    -- Update transparency based on transparent background setting
-    if self._transparentBackground and self.main_frame then
-        self.main_frame.BackgroundTransparency = (self.config.BackgroundTransparency or 0.45) + 0.1
-    end
-end
     if useBg and self.bg_image_label then
         local img = type(imageId) == "string" and imageId or self.config.BackgroundImage or ""
         if img ~= "" then
@@ -4461,7 +4280,7 @@ function atom_ui:BuildMainFrame()
     })
 
     local settingsPanelWidth = 185 * scale_factor
-    local settingsPanelHeight = 400 * scale_factor
+    local settingsPanelHeight = 292 * scale_factor
     self.settings_open = false
 
     self.settings_btn_frame = create("Frame", {
@@ -4621,16 +4440,6 @@ function atom_ui:BuildMainFrame()
         self.config.CustomBackground = enabled
         self:_SetCustomBackgroundEnabled(enabled)
     end)
-    local transparentBgToggleRef = createSettingsToggle("Transparent BG", self._transparentBackground or false, function(enabled)
-        self._transparentBackground = enabled
-        self:SetTransparentBackground(enabled)
-    end)
-    local customLogoToggleRef = createSettingsToggle("Custom Logo", self.config.CustomLogoEnabled or false, function(enabled)
-        self:_SetCustomLogoEnabled(enabled)
-    end)
-    -- Store references for later updates
-    self._customBgToggleRef = customBgToggleRef
-    self._customLogoToggleRef = customLogoToggleRef
     local autoSaveToggleRef = nil
     if self.config.ShowAutoSaveToggle ~= false then
         autoSaveToggleRef = createSettingsToggle("Auto Save Config", self._autoConfigEnabled, function(enabled)
@@ -4645,7 +4454,7 @@ function atom_ui:BuildMainFrame()
         end)
     end
 
-    self.settings_toggle_refs = {blurToggleRef, overlayToggleRef, bgFxToggleRef, gradientToggleRef, espPreviewToggleRef, hideNameToggleRef, customBgToggleRef, transparentBgToggleRef, customLogoToggleRef}
+    self.settings_toggle_refs = {blurToggleRef, overlayToggleRef, bgFxToggleRef, gradientToggleRef, espPreviewToggleRef, hideNameToggleRef, customBgToggleRef}
     if autoSaveToggleRef then
         table.insert(self.settings_toggle_refs, autoSaveToggleRef)
     end
@@ -4977,178 +4786,9 @@ function atom_ui:BuildMainFrame()
             overlayToggleRef:Set(self._uiVisualSettings.Snow, true)
             bgFxToggleRef:Set(self._uiVisualSettings.BackgroundEffects, true)
             gradientToggleRef:Set(self._uiVisualSettings.TextGradient, true)
-            if transparentBgToggleRef then transparentBgToggleRef:Set(self._transparentBackground or false, true) end
-            if customLogoToggleRef then customLogoToggleRef:Set(self.config.CustomLogoEnabled or false, true) end
         end)
     end
 
-
-    -- Custom Background Image input row
-    local bgImageRow = create("Frame", {
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 10, 0, rowY + 30 * scale_factor),
-        Size = UDim2.new(1, -20, 0, 22 * scale_factor),
-        Parent = self.settings_panel
-    })
-    create("TextLabel", {
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-        Text = "BG Image",
-        TextColor3 = Color3.fromRGB(150, 150, 150),
-        BackgroundTransparency = 1,
-        Size = UDim2.new(0, 62 * scale_factor, 1, 0),
-        TextSize = 12 * scale_factor,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = bgImageRow
-    })
-    local bgImageInput = create("TextBox", {
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-        Text = self.config.BackgroundImage or "",
-        PlaceholderText = "rbxassetid:// or URL...",
-        PlaceholderColor3 = Color3.fromRGB(60, 60, 60),
-        TextColor3 = Color3.fromRGB(210, 210, 210),
-        TextSize = 11 * scale_factor,
-        BackgroundColor3 = Color3.fromRGB(28, 28, 28),
-        Position = UDim2.new(0, 66 * scale_factor, 0, 0),
-        Size = UDim2.new(1, -68 * scale_factor, 1, 0),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ClearTextOnFocus = false,
-        Parent = bgImageRow,
-    })
-    create("UICorner", {CornerRadius = UDim.new(0, 5), Parent = bgImageInput})
-    create("UIStroke", {Color = Color3.fromRGB(44, 44, 44), Parent = bgImageInput})
-    create("UIPadding", {PaddingLeft = UDim.new(0, 6), Parent = bgImageInput})
-    self._bgImageInput = bgImageInput
-    bgImageInput.FocusLost:Connect(function()
-        local text = bgImageInput.Text:gsub("^%s*(.-)%s*$", "%1")
-        if text ~= "" then
-            self:SetBackgroundImageEnhanced(text)
-        else
-            self:ClearCustomBackground()
-        end
-    end)
-
-    rowY = rowY + 28 * scale_factor
-
-    -- Custom Logo Image input row
-    local logoImageRow = create("Frame", {
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 10, 0, rowY + 30 * scale_factor),
-        Size = UDim2.new(1, -20, 0, 22 * scale_factor),
-        Parent = self.settings_panel
-    })
-    create("TextLabel", {
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-        Text = "Logo",
-        TextColor3 = Color3.fromRGB(150, 150, 150),
-        BackgroundTransparency = 1,
-        Size = UDim2.new(0, 62 * scale_factor, 1, 0),
-        TextSize = 12 * scale_factor,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = logoImageRow
-    })
-    local logoImageInput = create("TextBox", {
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-        Text = self.config.CustomLogo or "",
-        PlaceholderText = "rbxassetid:// or URL...",
-        PlaceholderColor3 = Color3.fromRGB(60, 60, 60),
-        TextColor3 = Color3.fromRGB(210, 210, 210),
-        TextSize = 11 * scale_factor,
-        BackgroundColor3 = Color3.fromRGB(28, 28, 28),
-        Position = UDim2.new(0, 66 * scale_factor, 0, 0),
-        Size = UDim2.new(1, -68 * scale_factor, 1, 0),
-        TextXAlignment = Enum.TextXAlignment.Left,
-        ClearTextOnFocus = false,
-        Parent = logoImageRow,
-    })
-    create("UICorner", {CornerRadius = UDim.new(0, 5), Parent = logoImageInput})
-    create("UIStroke", {Color = Color3.fromRGB(44, 44, 44), Parent = logoImageInput})
-    create("UIPadding", {PaddingLeft = UDim.new(0, 6), Parent = logoImageInput})
-    self._logoImageInput = logoImageInput
-    logoImageInput.FocusLost:Connect(function()
-        local text = logoImageInput.Text:gsub("^%s*(.-)%s*$", "%1")
-        if text ~= "" then
-            self:SetCustomLogo(text)
-        else
-            self:ClearCustomLogo()
-        end
-    end)
-
-    rowY = rowY + 28 * scale_factor
-
-    -- UI Scale slider row
-    local uiScaleRow = create("Frame", {
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0, 10, 0, rowY + 30 * scale_factor),
-        Size = UDim2.new(1, -20, 0, 20 * scale_factor),
-        Parent = self.settings_panel
-    })
-    create("TextLabel", {
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-        Text = "UI Scale",
-        TextColor3 = Color3.fromRGB(150, 150, 150),
-        BackgroundTransparency = 1,
-        Size = UDim2.new(0, 62 * scale_factor, 1, 0),
-        TextSize = 12 * scale_factor,
-        TextXAlignment = Enum.TextXAlignment.Left,
-        Parent = uiScaleRow
-    })
-    local uiScaleValueLabel = create("TextLabel", {
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-        Text = tostring(math.floor((self.config.Scale or 1) * 100)) .. "%",
-        TextColor3 = Color3.fromRGB(210, 210, 210),
-        BackgroundTransparency = 1,
-        Position = UDim2.new(1, -38 * scale_factor, 0, 0),
-        Size = UDim2.new(0, 36 * scale_factor, 1, 0),
-        TextSize = 12 * scale_factor,
-        TextXAlignment = Enum.TextXAlignment.Right,
-        Parent = uiScaleRow
-    })
-    local uiScaleMinus = create("TextButton", {
-        Text = "-", TextColor3 = Color3.fromRGB(150, 150, 150),
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-        TextSize = 14 * scale_factor,
-        BackgroundColor3 = Color3.fromRGB(28, 28, 28),
-        Position = UDim2.new(0, 66 * scale_factor, 0, 0),
-        Size = UDim2.new(0, 22 * scale_factor, 0, 20 * scale_factor),
-        Parent = uiScaleRow,
-    })
-    create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = uiScaleMinus})
-    local uiScalePlus = create("TextButton", {
-        Text = "+", TextColor3 = Color3.fromRGB(150, 150, 150),
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-        TextSize = 14 * scale_factor,
-        BackgroundColor3 = Color3.fromRGB(28, 28, 28),
-        Position = UDim2.new(0, 92 * scale_factor, 0, 0),
-        Size = UDim2.new(0, 22 * scale_factor, 0, 20 * scale_factor),
-        Parent = uiScaleRow,
-    })
-    create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = uiScalePlus})
-    local uiScaleReset = create("TextButton", {
-        Text = "Reset", TextColor3 = Color3.fromRGB(150, 150, 150),
-        FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-        TextSize = 10 * scale_factor,
-        BackgroundColor3 = Color3.fromRGB(28, 28, 28),
-        Position = UDim2.new(0, 118 * scale_factor, 0, 0),
-        Size = UDim2.new(0, 34 * scale_factor, 0, 20 * scale_factor),
-        Parent = uiScaleRow,
-    })
-    create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = uiScaleReset})
-    uiScaleMinus.MouseButton1Click:Connect(function()
-        local newScale = math.clamp((self.config.Scale or 1) - 0.05, 0.5, 2.0)
-        self:SetUIScale(newScale)
-        uiScaleValueLabel.Text = tostring(math.floor(newScale * 100)) .. "%"
-    end)
-    uiScalePlus.MouseButton1Click:Connect(function()
-        local newScale = math.clamp((self.config.Scale or 1) + 0.05, 0.5, 2.0)
-        self:SetUIScale(newScale)
-        uiScaleValueLabel.Text = tostring(math.floor(newScale * 100)) .. "%"
-    end)
-    uiScaleReset.MouseButton1Click:Connect(function()
-        self:SetUIScale(1)
-        uiScaleValueLabel.Text = "100%"
-    end)
-
-    rowY = rowY + 28 * scale_factor
     local function setSettingsPanelOpen(openState)
         self.settings_open = openState == true
         if self.settings_open then
@@ -5187,26 +4827,12 @@ function atom_ui:BuildMainFrame()
         ImageColor3 = self.config.AccentColor,
         BackgroundTransparency = 1,
         Position = UDim2.new(0, 14, 0, 14),
-        Size = UDim2.new(0, 42 * scale_factor, 0, 42 * scale_factor),
+        Size = UDim2.new(0, 38 * scale_factor, 0, 38 * scale_factor),
         AnchorPoint = Vector2.new(0, 0),
         ZIndex = 99999,
         Parent = self.screen_gui,
         Visible = false,
         Active = true
-    })
-    
-    -- Glow effect behind toggle
-    local toggleGlow = create("ImageLabel", {
-        Name = "ToggleGlow",
-        Image = "rbxassetid://5028857084",
-        ImageColor3 = self.config.AccentColor,
-        ImageTransparency = 0.85,
-        BackgroundTransparency = 1,
-        Position = UDim2.new(0.5, 0, 0.5, 0),
-        AnchorPoint = Vector2.new(0.5, 0.5),
-        Size = UDim2.new(1.6, 0, 1.6, 0),
-        ZIndex = 99998,
-        Parent = self.floating_toggle
     })
 
     local ft_click = create("TextButton", {
@@ -5223,23 +4849,10 @@ function atom_ui:BuildMainFrame()
     end)
     ft_click.MouseEnter:Connect(function()
         tween_to(self.floating_toggle, {ImageColor3 = Color3.new(1, 1, 1)}, 0.15)
-        tween_to(toggleGlow, {ImageTransparency = 0.7}, 0.15)
-        tween_to(self.floating_toggle, {Size = UDim2.new(0, 46 * scale_factor, 0, 46 * scale_factor)}, 0.15, Enum.EasingStyle.Back, Enum.EasingDirection.Out)
     end)
     ft_click.MouseLeave:Connect(function()
         tween_to(self.floating_toggle, {ImageColor3 = self.config.AccentColor}, 0.15)
-        tween_to(toggleGlow, {ImageTransparency = 0.85}, 0.15)
-        tween_to(self.floating_toggle, {Size = UDim2.new(0, 42 * scale_factor, 0, 42 * scale_factor)}, 0.15)
     end)
-    
-    -- Optional: Add smooth spinning animation to toggle logo
-    if self.config.SpinningLogo ~= false then
-        self._toggleSpinConn = run_service.Heartbeat:Connect(function(dt)
-            if self.floating_toggle and self.floating_toggle.Parent then
-                self.floating_toggle.Rotation = (self.floating_toggle.Rotation + 45 * dt) % 360
-            end
-        end)
-    end
 end
 
 
@@ -5660,10 +5273,6 @@ function atom_ui:AddSection(config)
         
         local groupSpacingY = 15 * scale_factor
         local function relayout_groups()
-            if tabObj._relayout_override then
-                tabObj._relayout_override()
-                return
-            end
             local sideOffsets = {Left = 0, Right = 0}
             for _, group in ipairs(tabObj.groups) do
                 if group.mainFrame and group.mainFrame.Parent then
@@ -8240,299 +7849,10 @@ function atom_ui:AddSection(config)
             return groupObj
         end
         
-        tabObj.subtabs = {}
-        tabObj.active_subtab = nil
-        tabObj._subtab_bar = nil
-        tabObj._subtab_bar_height = 32 * scale_factor
-
-        function tabObj:AddSubTab(subTabConfig)
-            subTabConfig = subTabConfig or {}
-            subTabConfig.Name = subTabConfig.Name or "SubTab"
-            subTabConfig.Icon = subTabConfig.Icon and get_icon(subTabConfig.Icon, "") or nil
-
-            if not tabObj._subtab_bar then
-                tabObj._subtab_bar = create("Frame", {
-                    BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 0, 0, 0),
-                    Size = UDim2.new(1, 0, 0, tabObj._subtab_bar_height),
-                    ClipsDescendants = false,
-                    ZIndex = 3,
-                    Parent = tabObj.content_scroll
-                })
-                create("Frame", {
-                    BackgroundColor3 = Color3.fromRGB(38, 38, 38),
-                    Position = UDim2.new(0, 0, 1, -1),
-                    Size = UDim2.new(1, 0, 0, 1),
-                    BorderSizePixel = 0,
-                    ZIndex = 4,
-                    Parent = tabObj._subtab_bar
-                })
-                tabObj._subtab_next_x = 0
-                tabObj.left_column.Position  = UDim2.new(0, 0, 0, tabObj._subtab_bar_height + 8 * scale_factor)
-                tabObj.right_column.Position = UDim2.new(0, 272 * scale_factor, 0, tabObj._subtab_bar_height + 8 * scale_factor)
-            end
-
-            local subTabObj = {}
-            subTabObj.tab_name = subTabConfig.Name
-            subTabObj.groups = {}
-            subTabObj.group_offsets = {Left = 0, Right = 0}
-            subTabObj.isActive = false
-            subTabObj.Library = tabObj.Library
-
-            local barH = tabObj._subtab_bar_height
-            local accentColor = sectionObj.Library.config.AccentColor
-            local padX = 14 * scale_factor
-            local iconSize = 13 * scale_factor
-            local fontSize = 13 * scale_factor
-
-            -- measure text width with a temporary off-screen label
-            local textW = 60 * scale_factor
-            pcall(function()
-                local tmp = Instance.new("TextLabel")
-                tmp.FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold)
-                tmp.TextSize = fontSize
-                tmp.Text = subTabConfig.Name
-                tmp.Size = UDim2.new(0, 500, 0, 20)
-                tmp.Parent = game:GetService("CoreGui")
-                textW = tmp.TextBounds.X + 2
-                tmp:Destroy()
-            end)
-
-            local iconW = (subTabConfig.Icon and subTabConfig.Icon ~= "") and (iconSize + 5 * scale_factor) or 0
-            local btnW = padX + iconW + textW + padX
-
-            local currentX = tabObj._subtab_next_x
-            tabObj._subtab_next_x = currentX + btnW
-
-            subTabObj.pill = create("TextButton", {
-                BackgroundTransparency = 1,
-                Position = UDim2.new(0, currentX, 0, 0),
-                Size = UDim2.new(0, btnW, 0, barH),
-                Text = "",
-                ZIndex = 4,
-                Parent = tabObj._subtab_bar
-            })
-
-            local contentOffsetX = padX
-            if subTabConfig.Icon and subTabConfig.Icon ~= "" then
-                subTabObj.pillIcon = create("ImageLabel", {
-                    Image = subTabConfig.Icon,
-                    ImageColor3 = Color3.fromRGB(70, 70, 70),
-                    BackgroundTransparency = 1,
-                    Position = UDim2.new(0, contentOffsetX, 0.5, -iconSize / 2),
-                    Size = UDim2.new(0, iconSize, 0, iconSize),
-                    ZIndex = 5,
-                    Parent = subTabObj.pill
-                })
-                contentOffsetX = contentOffsetX + iconSize + 5 * scale_factor
-            end
-
-            subTabObj.pillLabel = create("TextLabel", {
-                FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-                TextColor3 = Color3.fromRGB(70, 70, 70),
-                Text = subTabConfig.Name,
-                BackgroundTransparency = 1,
-                Position = UDim2.new(0, contentOffsetX, 0, 0),
-                Size = UDim2.new(0, textW, 1, -3),
-                TextSize = fontSize,
-                TextXAlignment = Enum.TextXAlignment.Left,
-                ZIndex = 5,
-                Parent = subTabObj.pill
-            })
-
-            subTabObj.underline = create("Frame", {
-                BackgroundColor3 = accentColor,
-                Position = UDim2.new(0, padX, 1, -2),
-                Size = UDim2.new(0, btnW - padX * 2, 0, 2),
-                BorderSizePixel = 0,
-                BackgroundTransparency = 1,
-                ZIndex = 5,
-                Parent = subTabObj.pill
-            })
-            create("UICorner", {CornerRadius = UDim.new(1, 0), Parent = subTabObj.underline})
-
-            subTabObj.left_column = create("Frame", {
-                BackgroundTransparency = 1,
-                Position = UDim2.new(0, 0, 0, barH + 8 * scale_factor),
-                Size = UDim2.new(0, 262 * scale_factor, 0, 1000),
-                Visible = false,
-                Parent = tabObj.content_scroll
-            })
-            subTabObj.right_column = create("Frame", {
-                BackgroundTransparency = 1,
-                Position = UDim2.new(0, 272 * scale_factor, 0, barH + 8 * scale_factor),
-                Size = UDim2.new(0, 262 * scale_factor, 0, 1000),
-                Visible = false,
-                Parent = tabObj.content_scroll
-            })
-
-            local groupSpacingY = 15 * scale_factor
-            local function relayout_subtab_groups()
-                local sideOffsets = {Left = 0, Right = 0}
-                for _, group in ipairs(subTabObj.groups) do
-                    if group.mainFrame and group.mainFrame.Parent then
-                        local side = group.side == "Right" and "Right" or "Left"
-                        local nextY = sideOffsets[side]
-                        group.mainFrame.Position = UDim2.new(0, 1, 0, nextY + 1)
-                        sideOffsets[side] = nextY + group.mainFrame.Size.Y.Offset + groupSpacingY
-                    end
-                end
-                subTabObj.group_offsets.Left = sideOffsets.Left
-                subTabObj.group_offsets.Right = sideOffsets.Right
-                local maxH = math.max(sideOffsets.Left, sideOffsets.Right)
-                tabObj.content_scroll.CanvasSize = UDim2.new(0, tabObj.content_scroll.AbsoluteSize.X, 0, barH + 8 * scale_factor + maxH)
-            end
-
-            function subTabObj:Activate()
-                if subTabObj.isActive then return end
-                if tabObj.active_subtab and tabObj.active_subtab ~= subTabObj then
-                    tabObj.active_subtab:Deactivate()
-                end
-                tabObj.active_subtab = subTabObj
-                subTabObj.isActive = true
-                subTabObj.left_column.Visible  = true
-                subTabObj.right_column.Visible = true
-                tabObj.left_column.Visible  = false
-                tabObj.right_column.Visible = false
-                tween_to(subTabObj.underline, {BackgroundTransparency = 0}, 0.18)
-                tween_to(subTabObj.pillLabel, {TextColor3 = Color3.new(1, 1, 1)}, 0.18)
-                if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.new(1, 1, 1)}, 0.18) end
-                relayout_subtab_groups()
-            end
-
-            function subTabObj:Deactivate()
-                subTabObj.isActive = false
-                subTabObj.left_column.Visible  = false
-                subTabObj.right_column.Visible = false
-                tween_to(subTabObj.underline, {BackgroundTransparency = 1}, 0.15)
-                tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(70, 70, 70)}, 0.15)
-                if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(70, 70, 70)}, 0.15) end
-            end
-
-            subTabObj.pill.MouseButton1Click:Connect(function()
-                if not subTabObj.isActive then subTabObj:Activate() end
-            end)
-            subTabObj.pill.MouseEnter:Connect(function()
-                if not subTabObj.isActive then
-                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(160, 160, 160)}, 0.12)
-                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(160, 160, 160)}, 0.12) end
-                end
-            end)
-            subTabObj.pill.MouseLeave:Connect(function()
-                if not subTabObj.isActive then
-                    tween_to(subTabObj.pillLabel, {TextColor3 = Color3.fromRGB(70, 70, 70)}, 0.12)
-                    if subTabObj.pillIcon then tween_to(subTabObj.pillIcon, {ImageColor3 = Color3.fromRGB(70, 70, 70)}, 0.12) end
-                end
-            end)
-
-            function subTabObj:AddGroup(stGroupConfig)
-                stGroupConfig = stGroupConfig or {}
-                stGroupConfig.Name = stGroupConfig.Name or "Group"
-                stGroupConfig.Side = stGroupConfig.Side or "Left"
-                stGroupConfig.Icon = get_icon(stGroupConfig.Icon, default_icons.group)
-                if string.lower(tostring(stGroupConfig.Side)) == "right" then
-                    stGroupConfig.Side = "Right"
-                else
-                    stGroupConfig.Side = "Left"
-                end
-
-                local groupObj = {}
-                groupObj.group_name = stGroupConfig.Name
-                groupObj.searchTerms = {stGroupConfig.Name}
-                groupObj.elements = {}
-                groupObj.Library = subTabObj.Library
-                groupObj.side = stGroupConfig.Side
-                groupObj.element_y = 38 * scale_factor
-                local function createAutoFlag(elementName)
-                    return tostring(tabObj.tab_name) .. "." .. tostring(subTabObj.tab_name) .. "." .. tostring(groupObj.group_name) .. "." .. tostring(elementName or "Value")
-                end
-                local function addSearchTerm(term)
-                    local normalized = normalize_search(term)
-                    if normalized ~= "" then table.insert(groupObj.searchTerms, tostring(term)) end
-                end
-
-                local parentColumn = groupObj.side == "Left" and subTabObj.left_column or subTabObj.right_column
-                groupObj.mainFrame = create("Frame", {
-                    BackgroundColor3 = Color3.fromRGB(18, 18, 18), Position = UDim2.new(0, 1, 0, 1),
-                    Size = UDim2.new(1, -2, 0, 54 * scale_factor),
-                    ClipsDescendants = true, Parent = parentColumn
-                })
-
-                local stStroke = create("UIStroke", {Color = Color3.fromRGB(33, 33, 33), Parent = groupObj.mainFrame})
-                create("UIGradient", {
-                    Color = ColorSequence.new({ColorSequenceKeypoint.new(0, Color3.new(1,1,1)), ColorSequenceKeypoint.new(0.5, Color3.fromRGB(150,150,150)), ColorSequenceKeypoint.new(1, Color3.new(1,1,1))}),
-                    Rotation = 260, Parent = stStroke
-                })
-                create("UICorner", {CornerRadius = UDim.new(0, 11), Parent = groupObj.mainFrame})
-                create("ImageLabel", {
-                    Image = stGroupConfig.Icon, BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 10, 0, 10 * scale_factor),
-                    Size = UDim2.new(0, 17 * scale_factor, 0, 17 * scale_factor), Parent = groupObj.mainFrame
-                })
-                create("TextLabel", {
-                    FontFace = Font.new("rbxasset://fonts/families/GothamSSm.json", Enum.FontWeight.SemiBold),
-                    TextColor3 = Color3.new(1, 1, 1), Text = stGroupConfig.Name, BackgroundTransparency = 1,
-                    Position = UDim2.new(0, 33, 0, 8 * scale_factor), TextSize = 15.6 * scale_factor,
-                    Size = UDim2.new(0, 215 * scale_factor, 0, 16 * scale_factor),
-                    TextXAlignment = Enum.TextXAlignment.Left,
-                    TextTruncate = Enum.TextTruncate.AtEnd, Parent = groupObj.mainFrame
-                })
-
-                local function update_group_size()
-                    local newHeight = groupObj.element_y + 12 * scale_factor
-                    groupObj.mainFrame.Size = UDim2.new(1, -2, 0, newHeight)
-                    relayout_subtab_groups()
-                end
-
-                -- Borrow element Add* methods from tabObj:AddGroup by temporarily
-                -- pointing tabObj's columns at the subtab columns and setting a
-                -- relayout override so update_group_size calls relayout_subtab_groups.
-                local _sl = tabObj.left_column
-                local _sr = tabObj.right_column
-                local _sg = tabObj.groups
-                local _so = tabObj.group_offsets
-
-                tabObj.left_column        = subTabObj.left_column
-                tabObj.right_column       = subTabObj.right_column
-                tabObj.groups             = subTabObj.groups
-                tabObj.group_offsets      = subTabObj.group_offsets
-                tabObj._relayout_override = relayout_subtab_groups
-
-                local borrowed = tabObj:AddGroup(stGroupConfig)
-
-                tabObj.left_column        = _sl
-                tabObj.right_column       = _sr
-                tabObj.groups             = _sg
-                tabObj.group_offsets      = _so
-                tabObj._relayout_override = nil
-
-                -- AddGroup already inserted borrowed into subTabObj.groups via the swap;
-                -- remove it so we control insertion order below
-                for i = #subTabObj.groups, 1, -1 do
-                    if subTabObj.groups[i] == borrowed then
-                        table.remove(subTabObj.groups, i)
-                        break
-                    end
-                end
-
-                table.insert(subTabObj.groups, borrowed)
-                relayout_subtab_groups()
-                return borrowed
-            end
-
-            table.insert(tabObj.subtabs, subTabObj)
-
-            if #tabObj.subtabs == 1 then
-                tabObj.left_column.Visible = false
-                tabObj.right_column.Visible = false
-                subTabObj:Activate()
-            end
-
-            return subTabObj
-        end
-
         table.insert(sectionObj.tabs, tabObj)
         table.insert(sectionObj.Library.all_tabs, tabObj)
+        
+        if #sectionObj.Library.all_tabs == 1 then tabObj:Activate() end
         
         task.defer(function()
             local tabsHeight = sectionObj.tab_layout.AbsoluteContentSize.Y
@@ -8544,7 +7864,6 @@ function atom_ui:AddSection(config)
             sectionObj.Library:SetSearchFilter(sectionObj.Library._searchQuery)
         end
         
-
         return tabObj
     end
     
@@ -8678,11 +7997,6 @@ function atom_ui:Destroy()
         self._blurEffectRef:Destroy()
     end
     self._blurEffectRef = nil
-    
-    if self._toggleSpinConn then
-        self._toggleSpinConn:Disconnect()
-        self._toggleSpinConn = nil
-    end
 
     if self._espPreviewPanel and self._espPreviewPanel.Parent then
         self._espPreviewPanel:Destroy()
@@ -8719,12 +8033,7 @@ function atom_ui.Demo()
         Name = "AtomUI Demo",
         AccentColor = Color3.fromRGB(2, 133, 255),
         AutoConfig = false
-        AutoConfig = false,
-        -- Custom background image (supports rbxassetid://, numeric ID, or direct URL)
-        -- BackgroundImage = "rbxassetid://12345678",
-        -- CustomLogo = "rbxassetid://87654321",  -- Custom floating toggle logo
-        -- SpinningLogo = true,  -- Spin the floating toggle logo
-        -- Scale = 1.0,  -- UI scale (0.5 to 2.0)
+    })
 
     local main_section = lib:AddSection({Name = "Main", Icon = "sword"})
 
@@ -8879,37 +8188,6 @@ function atom_ui.Demo()
 
     local settings_section = lib:AddSection({Name = "Config", Icon = "settings"})
 
-    -- SubTab demo
-    local sub_tab = main_section:AddTab({
-        Name = "SubTabs",
-        Description = "SubTab demo",
-        Icon = "layers"
-    })
-
-    local st_general = sub_tab:AddSubTab({Name = "General", Icon = "sliders"})
-    local st_gen_left = st_general:AddGroup({Name = "Settings", Side = "Left", Icon = "settings"})
-    st_gen_left:AddToggle({Name = "Feature A", Default = true, Callback = function(v) print("[Demo] Feature A:", v) end})
-    st_gen_left:AddSlider({Name = "Intensity", Min = 0, Max = 100, Default = 50, Increment = 1, Callback = function(v) print("[Demo] Intensity:", v) end})
-
-    local st_visual = sub_tab:AddSubTab({Name = "Visual", Icon = "eye"})
-    local st_vis_left = st_visual:AddGroup({Name = "ESP", Side = "Left", Icon = "box"})
-    st_vis_left:AddToggle({Name = "Box ESP", Default = false, Callback = function(v) print("[Demo] Box ESP:", v) end})
-    st_vis_left:AddToggle({Name = "Name ESP", Default = false, Callback = function(v) print("[Demo] Name ESP:", v) end})
-
-    local st_advanced = sub_tab:AddSubTab({Name = "Advanced", Icon = "zap"})
-    local st_adv_left = st_advanced:AddGroup({Name = "Advanced Settings", Side = "Left", Icon = "cpu"})
-    st_adv_left:AddNumberInput({Name = "Max Targets", Default = 5, Min = 1, Max = 50, Step = 1, Callback = function(v) print("[Demo] MaxTargets:", v) end})
-    st_adv_left:AddBadge({Name = "Status", Value = "Active", Color = "green"})
-
-    -- Community tab placeholder (customize as needed)
-    --[[
-    local community_tab = main_section:AddTab({
-        Name = "Community",
-        Description = "Join our community",
-        Icon = "users"
-    })
-    --]]
-
     local cfg_tab = settings_section:AddTab({
         Name = "Settings",
         Description = "Configuration",
@@ -8944,24 +8222,6 @@ function atom_ui.Demo()
         Duration = 5
     })
 
-
-    -- Demo: New custom background and logo features
-    --[[ Examples of new features:
-    -- Set custom background via Roblox asset ID (numeric)
-    lib:SetBackgroundImageEnhanced("12345678")  -- rbxassetid://12345678
-    -- Set custom background via rbxassetid:// URL
-    lib:SetBackgroundImageEnhanced("rbxassetid://12345678")
-    -- Set custom background via direct image URL
-    lib:SetBackgroundImageEnhanced("https://example.com/bg.jpg")
-    -- Set transparent background
-    lib:SetTransparentBackground(true, 0.7)
-    -- Set custom logo via asset ID
-    lib:SetCustomLogo("12345678")
-    -- Set custom logo via URL
-    lib:SetCustomLogo("https://example.com/logo.png", true)  -- true = spinning
-    -- Change UI scale
-    lib:SetUIScale(1.2)
-    --]]
     return lib
 end
 
